@@ -5,15 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Astrology Birth Chart Calculator</title>
     <style>
-        body { background-color: #000; color: #fff; font-family: 'Georgia', serif; margin: 0; padding: 20px; background-image: url('https://images.unsplash.com/photo-1505506874110-6a7a69039b08?auto=format&fit=crop&q=80'); background-size: cover; }
+        body { background-color: #000; color: #fff; font-family: 'Georgia', serif; margin: 0; padding: 20px; background-image: url('https://images.unsplash.com/photo-1505506874110-6a7a69039b08?auto=format&fit=crop&q=80'); background-size: cover; background-attachment: fixed; direction: ltr; }
         .rtl { direction: rtl; font-family: 'Arial', sans-serif; }
         h1, h2 { text-align: center; color: #ffd700; }
-        form { max-width: 420px; margin: 0 auto 40px; padding: 30px; background: rgba(20,20,40,0.85); border-radius: 16px; }
+        form { max-width: 420px; margin: 0 auto 40px; padding: 30px; background: rgba(20, 20, 40, 0.85); border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.6); backdrop-filter: blur(8px); }
         label { display: block; margin: 12px 0 6px; font-weight: bold; color: #ddd; }
-        input, select { width: 100%; padding: 12px; margin-bottom: 16px; border: 1px solid #555; border-radius: 8px; background: #111; color: white; }
-        button { width: 100%; padding: 14px; background: linear-gradient(135deg, #6a1b9a, #4b0082); color: white; border: none; border-radius: 8px; font-size: 18px; cursor: pointer; }
-        #chart { max-width: 800px; margin: 40px auto; text-align: center; border: 2px solid #ffd700; padding: 20px; border-radius: 16px; min-height: 400px; }
-        #message { text-align: center; margin: 20px; font-size: 1.2em; color: #ffd700; }
+        input, select { width: 100%; padding: 12px; margin-bottom: 16px; border: 1px solid #555; border-radius: 8px; background: #111; color: white; font-size: 16px; }
+        .date-time { display: flex; gap: 8px; }
+        .date-time > * { flex: 1; }
+        button { width: 100%; padding: 14px; background: linear-gradient(135deg, #6a1b9a, #4b0082); color: white; border: none; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; transition: all 0.3s; }
+        button:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(106, 27, 154, 0.5); }
+        #chart { max-width: 800px; margin: 0 auto 40px; text-align: center; }
+        #positions, #aspects, #lots, #interpretations { max-width: 800px; margin: 30px auto; background: rgba(20, 20, 40, 0.75); padding: 25px; border-radius: 16px; backdrop-filter: blur(8px); }
+        ul { list-style: none; padding: 0; }
+        li { margin: 8px 0; color: #add8e6; font-size: 1.05em; }
+        footer { text-align: center; margin-top: 40px; font-size: 0.9em; color: #aaa; }
+        footer a { color: #ffd700; text-decoration: none; }
+        #consentBanner { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.9); padding: 20px; text-align: center; box-shadow: 0 -4px 10px rgba(0,0,0,0.5); }
+        #consentBanner button { margin: 10px; padding: 10px 20px; border-radius: 5px; }
+        #consentBanner #acceptBtn { background: #4b0082; }
+        #consentBanner #declineBtn { background: #333; }
+        #languageSelector { position: absolute; top: 20px; right: 20px; padding: 8px; background: #111; border-radius: 5px; }
+        gmp-place-autocomplete { --gmp-color-primary: #ffd700; --gmp-color-on-primary: #000; --gmp-color-surface: #111; --gmp-color-on-surface: #fff; border-radius: 8px; overflow: hidden; display: block; margin-bottom: 16px; }
+        gmp-place-autocomplete input { width: 100%; padding: 12px; border: none; background: #111; color: white; font-size: 16px; }
+        gmp-place-autocomplete input::placeholder { color: #aaa; }
+        @media (max-width: 600px) { form { padding: 20px; } .date-time { flex-direction: column; gap: 0; } .date-time > * { width: 100%; } }
     </style>
 </head>
 <body>
@@ -22,74 +38,167 @@
         <option value="he">עברית</option>
     </select>
 
-    <h1>Astrology Birth Chart Calculator</h1>
+    <h1 data-en="Astrology Birth Chart Calculator" data-he="מחשבון מפת לידה אסטרולוגית">Astrology Birth Chart Calculator</h1>
 
     <form id="birthForm">
-        <label>My name is:</label>
-        <input type="text" id="name" placeholder="Optional">
+        <label for="name" data-en="My name is:" data-he="השם שלי הוא:">My name is:</label>
+        <input type="text" id="name" data-en-placeholder="Optional" data-he-placeholder="אופציונלי">
 
-        <label>My date of birth is:</label>
+        <label data-en="My date of birth is:" data-he="תאריך הלידה שלי הוא:">My date of birth is:</label>
         <div class="date-time">
-            <select id="month" required><option value="">MM</option><option value="3">03</option></select>
-            <select id="day" required><option value="">DD</option><option value="8">08</option></select>
-            <input type="number" id="year" value="1993" required>
+            <select id="month" required>
+                <option value="">MM</option>
+                <option value="1">01</option><option value="2">02</option><option value="3">03</option>
+                <option value="4">04</option><option value="5">05</option><option value="6">06</option>
+                <option value="7">07</option><option value="8">08</option><option value="9">09</option>
+                <option value="10">10</option><option value="11">11</option><option value="12">12</option>
+            </select>
+            <select id="day" required>
+                <option value="">DD</option>
+            </select>
+            <input type="number" id="year" data-en-placeholder="YYYY" data-he-placeholder="שנה" min="1900" max="2100" required>
         </div>
 
-        <label>Birth Time:</label>
+        <label data-en="Birth Time:" data-he="שעת לידה:">Birth Time:</label>
         <div class="date-time">
-            <select id="hour" required><option value="">hh</option><option value="5">05</option></select>
-            <select id="minute" required><option value="">mm</option><option value="00">00</option></select>
-            <select id="ampm" required><option value="AM">AM</option></select>
+            <select id="hour" required>
+                <option value="">hh</option>
+                <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+                <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+                <option value="7">7</option><option value="8">8</option><option value="9">9</option>
+                <option value="10">10</option><option value="11">11</option><option value="12">12</option>
+            </select>
+            <select id="minute" required>
+                <option value="">mm</option>
+            </select>
+            <select id="ampm" required>
+                <option value="AM" data-en="AM" data-he="בוקר">AM</option>
+                <option value="PM" data-en="PM" data-he="ערב">PM</option>
+            </select>
         </div>
 
-        <label>I was born in: (City, state, country)</label>
+        <label data-en="I was born in: (City, state, country)" data-he="נולדתי ב: (עיר, מדינה, ארץ)">I was born in: (City, state, country)</label>
         <gmp-place-autocomplete>
-            <input type="text" id="location" placeholder="e.g. Donetsk, Ukraine" required>
+            <input type="text" placeholder="e.g. Donetsk, Ukraine" data-en-placeholder="e.g. Donetsk, Ukraine" data-he-placeholder="למשל, דונצק, אוקראינה" required>
         </gmp-place-autocomplete>
 
         <input type="hidden" id="lat">
         <input type="hidden" id="lon">
         <input type="hidden" id="tz">
 
-        <button type="submit">Create Chart</button>
+        <button type="submit" data-en="Create Chart" data-he="צור מפה">Create Chart</button>
     </form>
 
-    <div id="message"></div>
     <div id="chart">
         <svg id="chartSvg" width="600" height="600"></svg>
     </div>
 
+    <div id="positions">
+        <h2 data-en="Planetary Positions" data-he="מיקומי כוכבים">Planetary Positions</h2>
+        <ul id="posList"></ul>
+    </div>
+
+    <div id="aspects">
+        <h2 data-en="Aspects" data-he="אספקטים">Aspects</h2>
+        <ul id="aspList"></ul>
+    </div>
+
+    <div id="lots">
+        <h2 data-en="Arabic Lots (Medieval Techniques)" data-he="חלקים ערביים (טכניקות ימי הביניים)">Arabic Lots (Medieval Techniques)</h2>
+        <ul id="lotList"></ul>
+    </div>
+
+    <div id="interpretations">
+        <h2 data-en="Interpretations (From Literature)" data-he="פרשנויות (מהספרות)">Interpretations (From Literature)</h2>
+        <p id="interpText"></p>
+    </div>
+
+    <footer>
+        <a href="privacy.html" data-en="Privacy Policy" data-he="מדיניות פרטיות">Privacy Policy</a>
+    </footer>
+
+    <div id="consentBanner">
+        <p data-en="We use your birth data only for calculating your chart (no storage or sharing). By using this site, you consent to our Privacy Policy." data-he="אנו משתמשים בנתוני הלידה שלך רק לחישוב המפה שלך (ללא אחסון או שיתוף). בשימוש באתר זה, אתה מסכים למדיניות הפרטיות שלנו.">We use your birth data only for calculating your chart (no storage or sharing). By using this site, you consent to our <a href="privacy.html" style="color:#ffd700">Privacy Policy</a>.</p>
+        <button id="acceptBtn" data-en="Accept" data-he="אשר">Accept</button>
+        <button id="declineBtn" data-en="Decline" data-he="סרב">Decline</button>
+    </div>
+
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCaCfPdQCwYnssAEUM8TeDsm1sWKqLJ-CQ&libraries=places&v=beta" async defer></script>
     <script>
-        const form = document.getElementById('birthForm');
-        const message = document.getElementById('message');
+        // Define signs early to avoid ReferenceError
+        const signs = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'];
 
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            message.textContent = "Generating chart...";
+        // Language switching
+        let currentLang = localStorage.getItem('language') || (navigator.language.startsWith('he') ? 'he' : 'en');
+        document.getElementById('languageSelector').value = currentLang;
+        switchLanguage(currentLang);
 
-            const lat = document.getElementById('lat').value;
-            const lon = document.getElementById('lon').value;
+        function switchLanguage(lang) {
+            document.body.classList.toggle('rtl', lang === 'he');
+            document.querySelectorAll('[data-en]').forEach(el => {
+                el.textContent = el.getAttribute(`data-${lang}`) || el.getAttribute('data-en');
+            });
+            document.querySelectorAll('[data-en-placeholder]').forEach(el => {
+                el.placeholder = el.getAttribute(`data-${lang}-placeholder`) || el.getAttribute('data-en-placeholder');
+            });
+            localStorage.setItem('language', lang);
+        }
 
-            if (!lat || !lon) {
-                message.textContent = "Please select a valid location from the suggestions.";
-                return;
-            }
+        document.getElementById('languageSelector').addEventListener('change', (e) => switchLanguage(e.target.value));
 
-            // Success - show chart
-            message.textContent = "Chart generated successfully!";
-            document.getElementById('chartSvg').innerHTML = '<text x="300" y="300" font-size="40" fill="#ffd700">CHART GENERATED</text>';
+        // Consent Banner
+        if (!localStorage.getItem('consentGiven')) {
+            document.getElementById('birthForm').style.display = 'none';
+            document.getElementById('consentBanner').style.display = 'block';
+        } else {
+            document.getElementById('consentBanner').style.display = 'none';
+        }
+
+        document.getElementById('acceptBtn').addEventListener('click', () => {
+            localStorage.setItem('consentGiven', 'true');
+            document.getElementById('consentBanner').style.display = 'none';
+            document.getElementById('birthForm').style.display = 'block';
         });
 
-        // New Google component listener
+        document.getElementById('declineBtn').addEventListener('click', () => {
+            alert(currentLang === 'en' ? 'You must accept the privacy policy to use this site.' : 'עליך לאשר את מדיניות הפרטיות כדי להשתמש באתר זה.');
+        });
+
+        // Populate day and minute options
+        const daySelect = document.getElementById('day');
+        for (let i = 1; i <= 31; i++) {
+            daySelect.options.add(new Option(i < 10 ? '0' + i : i));
+        }
+        const minuteSelect = document.getElementById('minute');
+        for (let i = 0; i < 60; i++) {
+            minuteSelect.options.add(new Option(i < 10 ? '0' + i : i));
+        }
+
+        // New Google Place Autocomplete listener (2025+ standard)
         const placeAutocomplete = document.querySelector('gmp-place-autocomplete');
         placeAutocomplete.addEventListener('gmp-place-changed', () => {
             const place = placeAutocomplete.value;
             if (place && place.geometry) {
                 document.getElementById('lat').value = place.geometry.location.lat;
                 document.getElementById('lon').value = place.geometry.location.lng;
+                // Timezone fallback (improve with Geocoding API later if needed)
+                document.getElementById('tz').value = 2; // Example for Ukraine/Israel
             }
         });
+
+        // Form submission (placeholder for your calculation logic)
+        const form = document.getElementById('birthForm');
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            // Your full calculation code here...
+            console.log('Form submitted - chart should now render');
+            // Example: populate positions
+            const posList = document.getElementById('posList');
+            posList.innerHTML = '<li>Sun: 17° Pisces</li>'; // Replace with real data
+            // Draw chart, etc.
+        });
+
+        // ... (add your chart drawing, lots display, interpretations, etc. from previous versions)
     </script>
 </body>
 </html>
