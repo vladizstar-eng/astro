@@ -358,10 +358,23 @@ setError(currentLang === 'en'
 /**********************
 * Core astronomy
 **********************/
-function getPlanetLon(body, time) {
-const vec = Astronomy.GeoVector(body, time, false);
-const ecl = Astronomy.Ecliptic(vec);
-return norm360(ecl.elon);
+function meanObliquityDeg(time) {
+// Astronomy.MakeTime() returns an object that usually includes Julian days:
+// time.tt = Terrestrial Time Julian Day
+// time.ut = Universal Time Julian Day
+// We'll prefer TT if available, otherwise UT.
+const jd =
+(time && typeof time.tt === 'number') ? time.tt :
+(time && typeof time.ut === 'number') ? time.ut :
+NaN;
+
+if (!isFinite(jd)) {
+throw new Error("Could not read Julian Day from Astronomy time object (time.tt/time.ut missing).");
+}
+
+const T = (jd - 2451545.0) / 36525.0;
+const epsArcsec = 84381.448 - 46.8150*T - 0.00059*T*T + 0.001813*T*T*T;
+return epsArcsec / 3600.0;
 }
 
 function getNodeLon(time) {
