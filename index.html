@@ -26,7 +26,7 @@
         #consentBanner #acceptBtn { background: #4b0082; }
         #consentBanner #declineBtn { background: #333; }
         #languageSelector { position: absolute; top: 20px; right: 20px; padding: 8px; background: #111; border-radius: 5px; }
-        gmp-place-autocomplete { --gmp-color-primary: #ffd700; --gmp-color-on-primary: #000; --gmp-color-surface: #111; --gmp-color-on-surface: #fff; border-radius: 8px; overflow: hidden; display: block; }
+        gmp-place-autocomplete { --gmp-color-primary: #ffd700; --gmp-color-on-primary: #000; --gmp-color-surface: #111; --gmp-color-on-surface: #fff; border-radius: 8px; overflow: hidden; display: block; margin-bottom: 16px; }
         gmp-place-autocomplete input { width: 100%; padding: 12px; border: none; background: #111; color: white; font-size: 16px; }
         gmp-place-autocomplete input::placeholder { color: #aaa; }
         @media (max-width: 600px) { form { padding: 20px; } .date-time { flex-direction: column; gap: 0; } .date-time > * { width: 100%; } }
@@ -89,14 +89,29 @@
         <button type="submit" data-en="Create Chart" data-he="צור מפה">Create Chart</button>
     </form>
 
-    <!-- Chart and result sections (keep your existing ones) -->
     <div id="chart">
         <svg id="chartSvg" width="600" height="600"></svg>
     </div>
-    <div id="positions"><h2 data-en="Planetary Positions" data-he="מיקומי כוכבים">Planetary Positions</h2><ul id="posList"></ul></div>
-    <div id="aspects"><h2 data-en="Aspects" data-he="אספקטים">Aspects</h2><ul id="aspList"></ul></div>
-    <div id="lots"><h2 data-en="Arabic Lots (Medieval Techniques)" data-he="חלקים ערביים (טכניקות ימי הביניים)">Arabic Lots (Medieval Techniques)</h2><ul id="lotList"></ul></div>
-    <div id="interpretations"><h2 data-en="Interpretations (From Literature)" data-he="פרשנויות (מהספרות)">Interpretations (From Literature)</h2><p id="interpText"></p></div>
+
+    <div id="positions">
+        <h2 data-en="Planetary Positions" data-he="מיקומי כוכבים">Planetary Positions</h2>
+        <ul id="posList"></ul>
+    </div>
+
+    <div id="aspects">
+        <h2 data-en="Aspects" data-he="אספקטים">Aspects</h2>
+        <ul id="aspList"></ul>
+    </div>
+
+    <div id="lots">
+        <h2 data-en="Arabic Lots (Medieval Techniques)" data-he="חלקים ערביים (טכניקות ימי הביניים)">Arabic Lots (Medieval Techniques)</h2>
+        <ul id="lotList"></ul>
+    </div>
+
+    <div id="interpretations">
+        <h2 data-en="Interpretations (From Literature)" data-he="פרשנויות (מהספרות)">Interpretations (From Literature)</h2>
+        <p id="interpText"></p>
+    </div>
 
     <footer>
         <a href="privacy.html" data-en="Privacy Policy" data-he="מדיניות פרטיות">Privacy Policy</a>
@@ -110,7 +125,7 @@
 
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCaCfPdQCwYnssAEUM8TeDsm1sWKqLJ-CQ&libraries=places&v=beta" async defer></script>
     <script>
-        // Define signs early (fixes "signs is not defined")
+        // Define signs early to avoid ReferenceError
         const signs = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'];
 
         // Language switching
@@ -171,16 +186,19 @@
             }
         });
 
-        // Form submission (as before - insert your full calculation logic here)
+        // Form submission (placeholder for your calculation logic)
         const form = document.getElementById('birthForm');
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            // Your calculation code...
+            // Your full calculation code here...
             console.log('Form submitted - chart should now render');
-            // animateChart(); // if you have animation
+            // Example: populate positions
+            const posList = document.getElementById('posList');
+            posList.innerHTML = '<li>Sun: 17° Pisces</li>'; // Replace with real data
+            // Draw chart, etc.
         });
 
-        // ... (rest of your script - chart drawing, lots display, etc.)
+        // ... (add your chart drawing, lots display, interpretations, etc. from previous versions)
     </script>
 </body>
 </html>
