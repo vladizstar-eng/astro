@@ -192,7 +192,10 @@ We use your birth data only for calculating your chart (no storage or sharing). 
 
 <!-- libs -->
 <script src="https://d3js.org/d3.v7.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/astronomy-engine@2.1.3/browser/astronomy-browser.js"></script>
+<script type="module">
+  import * as Astronomy from "https://cdn.jsdelivr.net/npm/astronomy-engine@2.1.3/+esm";
+  window.Astronomy = Astronomy;
+</script>
 
 <script>
 /**********************
