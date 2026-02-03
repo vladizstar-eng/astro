@@ -89,11 +89,28 @@
         <button type="submit" data-en="Create Chart" data-he="צור מפה">Create Chart</button>
     </form>
 
-    <!-- Chart and result sections remain unchanged from previous version -->
+    <!-- Chart and result sections (keep your existing ones) -->
+    <div id="chart">
+        <svg id="chartSvg" width="600" height="600"></svg>
+    </div>
+    <div id="positions"><h2 data-en="Planetary Positions" data-he="מיקומי כוכבים">Planetary Positions</h2><ul id="posList"></ul></div>
+    <div id="aspects"><h2 data-en="Aspects" data-he="אספקטים">Aspects</h2><ul id="aspList"></ul></div>
+    <div id="lots"><h2 data-en="Arabic Lots (Medieval Techniques)" data-he="חלקים ערביים (טכניקות ימי הביניים)">Arabic Lots (Medieval Techniques)</h2><ul id="lotList"></ul></div>
+    <div id="interpretations"><h2 data-en="Interpretations (From Literature)" data-he="פרשנויות (מהספרות)">Interpretations (From Literature)</h2><p id="interpText"></p></div>
 
-    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_API_KEY&libraries=places&v=beta" async defer></script>
+    <footer>
+        <a href="privacy.html" data-en="Privacy Policy" data-he="מדיניות פרטיות">Privacy Policy</a>
+    </footer>
+
+    <div id="consentBanner">
+        <p data-en="We use your birth data only for calculating your chart (no storage or sharing). By using this site, you consent to our Privacy Policy." data-he="אנו משתמשים בנתוני הלידה שלך רק לחישוב המפה שלך (ללא אחסון או שיתוף). בשימוש באתר זה, אתה מסכים למדיניות הפרטיות שלנו.">We use your birth data only for calculating your chart (no storage or sharing). By using this site, you consent to our <a href="privacy.html" style="color:#ffd700">Privacy Policy</a>.</p>
+        <button id="acceptBtn" data-en="Accept" data-he="אשר">Accept</button>
+        <button id="declineBtn" data-en="Decline" data-he="סרב">Decline</button>
+    </div>
+
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCaCfPdQCwYnssAEUM8TeDsm1sWKqLJ-CQ&libraries=places&v=beta" async defer></script>
     <script>
-        // Define signs early to avoid ReferenceError
+        // Define signs early (fixes "signs is not defined")
         const signs = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'];
 
         // Language switching
@@ -142,28 +159,28 @@
             minuteSelect.options.add(new Option(i < 10 ? '0' + i : i));
         }
 
-        // New Google Place Autocomplete listener
+        // New Google Place Autocomplete listener (2025+ standard)
         const placeAutocomplete = document.querySelector('gmp-place-autocomplete');
         placeAutocomplete.addEventListener('gmp-place-changed', () => {
             const place = placeAutocomplete.value;
             if (place && place.geometry) {
                 document.getElementById('lat').value = place.geometry.location.lat;
                 document.getElementById('lon').value = place.geometry.location.lng;
-                document.getElementById('tz').value = 2; // Fallback; improve with Geocoding if needed
+                // Timezone fallback (improve with Geocoding API later if needed)
+                document.getElementById('tz').value = 2; // Example for Ukraine/Israel
             }
         });
 
-        // Your form submission, calculations, chart drawing, etc. (keep as in previous version)
-        // Example placeholder for chart generation
+        // Form submission (as before - insert your full calculation logic here)
         const form = document.getElementById('birthForm');
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            // Your full logic here...
-            console.log('Form submitted - chart should render');
+            // Your calculation code...
+            console.log('Form submitted - chart should now render');
             // animateChart(); // if you have animation
         });
 
-        // Rest of script...
+        // ... (rest of your script - chart drawing, lots display, etc.)
     </script>
 </body>
 </html>
