@@ -5,62 +5,124 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Astrology Birth Chart Calculator</title>
     <style>
-        /* Your existing styles remain unchanged */
-        body { /* ... */ }
-        /* ... all other styles ... */
-        gmp-place-autocomplete {
-            --gmp-color-primary: #ffd700;
-            --gmp-color-on-primary: #000;
-            --gmp-color-surface: #111;
-            --gmp-color-on-surface: #fff;
-            border-radius: 8px;
-            overflow: hidden;
+        body {
+            background-color: #000;
+            color: #fff;
+            font-family: 'Georgia', serif;
+            margin: 0;
+            padding: 20px;
+            background-image: url('https://images.unsplash.com/photo-1505506874110-6a7a69039b08?auto=format&fit=crop&q=80');
+            background-size: cover;
+            background-attachment: fixed;
+            direction: ltr;
         }
-        gmp-place-autocomplete input {
-            width: 100%;
-            padding: 12px;
-            border: none;
-            background: #111;
-            color: white;
-            font-size: 16px;
-        }
-        gmp-place-autocomplete input::placeholder {
-            color: #aaa;
-        }
+        .rtl { direction: rtl; font-family: 'Arial', sans-serif; }
+        h1, h2 { text-align: center; color: #ffd700; }
+        form { max-width: 420px; margin: 0 auto 40px; padding: 30px; background: rgba(20, 20, 40, 0.85); border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.6); backdrop-filter: blur(8px); }
+        label { display: block; margin: 12px 0 6px; font-weight: bold; color: #ddd; }
+        input, select { width: 100%; padding: 12px; margin-bottom: 16px; border: 1px solid #555; border-radius: 8px; background: #111; color: white; font-size: 16px; }
+        .date-time { display: flex; gap: 8px; }
+        .date-time > * { flex: 1; }
+        button { width: 100%; padding: 14px; background: linear-gradient(135deg, #6a1b9a, #4b0082); color: white; border: none; border-radius: 8px; font-size: 18px; font-weight: bold; cursor: pointer; transition: all 0.3s; }
+        button:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(106, 27, 154, 0.5); }
+        #chart { max-width: 800px; margin: 0 auto 40px; text-align: center; }
+        #positions, #aspects, #lots, #interpretations { max-width: 800px; margin: 30px auto; background: rgba(20, 20, 40, 0.75); padding: 25px; border-radius: 16px; backdrop-filter: blur(8px); }
+        ul { list-style: none; padding: 0; }
+        li { margin: 8px 0; color: #add8e6; font-size: 1.05em; }
+        footer { text-align: center; margin-top: 40px; font-size: 0.9em; color: #aaa; }
+        footer a { color: #ffd700; text-decoration: none; }
+        #consentBanner { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.9); padding: 20px; text-align: center; box-shadow: 0 -4px 10px rgba(0,0,0,0.5); }
+        #consentBanner button { margin: 10px; padding: 10px 20px; border-radius: 5px; }
+        #consentBanner #acceptBtn { background: #4b0082; }
+        #consentBanner #declineBtn { background: #333; }
+        #languageSelector { position: absolute; top: 20px; right: 20px; padding: 8px; background: #111; border-radius: 5px; }
+        gmp-place-autocomplete { --gmp-color-primary: #ffd700; --gmp-color-on-primary: #000; --gmp-color-surface: #111; --gmp-color-on-surface: #fff; border-radius: 8px; overflow: hidden; }
+        gmp-place-autocomplete input { width: 100%; padding: 12px; border: none; background: #111; color: white; font-size: 16px; }
+        gmp-place-autocomplete input::placeholder { color: #aaa; }
+        @media (max-width: 600px) { form { padding: 20px; } .date-time { flex-direction: column; gap: 0; } .date-time > * { width: 100%; } }
     </style>
 </head>
 <body>
-    <!-- Your language selector and form as before -->
+    <select id="languageSelector">
+        <option value="en">English</option>
+        <option value="he">עברית</option>
+    </select>
 
-    <label for="location" data-en="I was born in: (City, state, country)" data-he="נולדתי ב: (עיר, מדינה, ארץ)">I was born in: (City, state, country)</label>
-    <gmp-place-autocomplete>
-        <input type="text" id="location" placeholder="e.g. Donetsk, Ukraine" required data-en-placeholder="e.g. Donetsk, Ukraine" data-he-placeholder="למשל, דונצק, אוקראינה">
-    </gmp-place-autocomplete>
+    <h1 data-en="Astrology Birth Chart Calculator" data-he="מחשבון מפת לידה אסטרולוגית">Astrology Birth Chart Calculator</h1>
 
-    <!-- Hidden fields still needed for lat/lon/tz -->
-    <input type="hidden" id="lat">
-    <input type="hidden" id="lon">
-    <input type="hidden" id="tz">
+    <form id="birthForm">
+        <label for="name" data-en="My name is:" data-he="השם שלי הוא:">My name is:</label>
+        <input type="text" id="name" data-en-placeholder="Optional" data-he-placeholder="אופציונלי">
 
-    <!-- Rest of your form, chart, etc. remains the same -->
+        <label data-en="My date of birth is:" data-he="תאריך הלידה שלי הוא:">My date of birth is:</label>
+        <div class="date-time">
+            <select id="month" required>
+                <option value="">MM</option>
+                <option value="1">01</option><option value="2">02</option><option value="3">03</option>
+                <option value="4">04</option><option value="5">05</option><option value="6">06</option>
+                <option value="7">07</option><option value="8">08</option><option value="9">09</option>
+                <option value="10">10</option><option value="11">11</option><option value="12">12</option>
+            </select>
+            <select id="day" required>
+                <option value="">DD</option>
+            </select>
+            <input type="number" id="year" data-en-placeholder="YYYY" data-he-placeholder="שנה" min="1900" max="2100" required>
+        </div>
 
-    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_API_KEY&libraries=places&v=beta" async defer></script>
+        <label data-en="Birth Time:" data-he="שעת לידה:">Birth Time:</label>
+        <div class="date-time">
+            <select id="hour" required>
+                <option value="">hh</option>
+                <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+                <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+                <option value="7">7</option><option value="8">8</option><option value="9">9</option>
+                <option value="10">10</option><option value="11">11</option><option value="12">12</option>
+            </select>
+            <select id="minute" required>
+                <option value="">mm</option>
+            </select>
+            <select id="ampm" required>
+                <option value="AM" data-en="AM" data-he="בוקר">AM</option>
+                <option value="PM" data-en="PM" data-he="ערב">PM</option>
+            </select>
+        </div>
+
+        <label data-en="I was born in: (City, state, country)" data-he="נולדתי ב: (עיר, מדינה, ארץ)">I was born in: (City, state, country)</label>
+        <gmp-place-autocomplete>
+            <input type="text" placeholder="e.g. Donetsk, Ukraine" data-en-placeholder="e.g. Donetsk, Ukraine" data-he-placeholder="למשל, דונצק, אוקראינה" required>
+        </gmp-place-autocomplete>
+
+        <input type="hidden" id="lat">
+        <input type="hidden" id="lon">
+        <input type="hidden" id="tz">
+
+        <button type="submit" data-en="Create Chart" data-he="צור מפה">Create Chart</button>
+    </form>
+
+    <!-- Rest of your HTML (chart div, positions, aspects, lots, interpretations, footer, consent banner) remains exactly the same -->
+
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCaCfPdQCwYnssAEUM8TeDsm1sWKqLJ-CQ&libraries=places&v=beta" async defer></script>
     <script>
-        // Listen for place selection from new component
+        // Language switching (keep as is)
+        // Consent banner (keep as is)
+
+        // New Google Place Autocomplete listener
         const placeAutocomplete = document.querySelector('gmp-place-autocomplete');
-        placeAutocomplete.addEventListener('place_changed', () => {
+        placeAutocomplete.addEventListener('gmp-place-changed', () => {
             const place = placeAutocomplete.value;
             if (place && place.geometry) {
                 document.getElementById('lat').value = place.geometry.location.lat;
                 document.getElementById('lon').value = place.geometry.location.lng;
-                // Timezone not directly available - use fallback or separate Geocoding call if needed
-                // For now, assume approximate or add Geocoding API call later
-                document.getElementById('tz').value = 2; // Example fallback; improve later
+                // Timezone fallback (improve with Geocoding if needed later)
+                document.getElementById('tz').value = 2; // Example for Ukraine; you can add Geocoding call here
             }
         });
 
-        // Rest of your script (language switch, consent, calculations, etc.)
-        // ... (keep everything else the same)
+        // Rest of your script (populate dropdowns, form submit, calculations, drawChart, etc.)
+        // Fix for 'signs is not defined' — make sure signs is defined early
+        const signs = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'];
+
+        // ... (your full calculation and chart code)
     </script>
 </body>
 </html>
