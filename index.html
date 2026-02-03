@@ -86,6 +86,7 @@ form { padding: 20px; }
 </style>
 </head>
 <body>
+
 <select id="languageSelector">
 <option value="en">English</option>
 <option value="he">עברית</option>
@@ -146,7 +147,7 @@ Pick a suggestion from the dropdown so we can get exact coordinates.
 <input type="hidden" id="lon" />
 <input type="hidden" id="tz" />
 
-<div class="hint" id="errBox" style="display:none;"></div>
+<div class="hint error" id="errBox" style="display:none;"></div>
 
 <button type="submit" data-en="Create Chart" data-he="צור מפה">Create Chart</button>
 </form>
@@ -189,13 +190,25 @@ We use your birth data only for calculating your chart (no storage or sharing). 
 <button id="declineBtn" data-en="Decline" data-he="סרב">Decline</button>
 </div>
 
-<!-- libs -->
+<!-- ✅ libs (order matters) -->
 <script src="https://d3js.org/d3.v7.min.js"></script>
 
-<!-- ✅ FIX: use stable CDN (jsDelivr) instead of unpkg -->
-<script src="https://cdn.jsdelivr.net/npm/astronomy-engine@2.1.3/browser/astronomy-browser.js"></script>
+<!-- ✅ FIX #1: Astronomy Engine working CDN file name/path -->
+<script src="https://cdn.jsdelivr.net/npm/astronomy-engine@2.1.19/astronomy.browser.min.js"></script>
 
 <script>
+/**********************
+* Friendly global error display (stops “[object Event]” confusion)
+**********************/
+window.addEventListener('error', (e) => {
+const msg = e?.message || (e?.error && e.error.message) || 'Unknown error';
+const box = document.getElementById('errBox');
+if (box) {
+box.style.display = 'block';
+box.textContent = msg;
+}
+});
+
 /**********************
 * Helpers & Globals
 **********************/
@@ -209,10 +222,10 @@ he: {Sun:'שמש', Moon:'ירח', Mercury:'כוכב חמה', Venus:'נוגה', M
 
 const aspectTypes = {
 0: { en:'Conjunction', he:'חיבור', orb: 8 },
-60: { en:'Sextile', he:'משושה', orb: 5 },
-90: { en:'Square', he:'ריבוע', orb: 6 },
-120:{ en:'Trine', he:'משולש', orb: 6 },
-180:{ en:'Opposition', he:'ניגוד', orb: 8 }
+60:{ en:'Sextile', he:'משושה', orb: 5 },
+90:{ en:'Square', he:'ריבוע', orb: 6 },
+120:{en:'Trine', he:'משולש', orb: 6 },
+180:{en:'Opposition', he:'ניגוד', orb: 8 }
 };
 
 const signRulers = {
@@ -236,53 +249,17 @@ return `${deg}°${pad2(min)} ${sign}`;
 
 function setError(msg){
 const box = document.getElementById('errBox');
+if(!box) return;
 if(!msg){
 box.style.display='none';
-box.classList.remove('error');
 box.textContent='';
 return;
 }
 box.style.display='block';
-box.classList.add('error');
 box.textContent = msg;
 }
 
 let lastChartState = null;
-
-/**********************
-* ✅ FIX: Ensure Astronomy Engine is loaded (prevents "Astronomy is not defined")
-**********************/
-async function ensureAstronomyLoaded() {
-if (window.Astronomy) return;
-
-// Try jsDelivr first
-await new Promise((resolve, reject) => {
-const s = document.createElement("script");
-s.src = "https://cdn.jsdelivr.net/npm/astronomy-engine@2.1.3/browser/astronomy-browser.js";
-s.onload = resolve;
-s.onerror = reject;
-document.head.appendChild(s);
-});
-
-if (!window.Astronomy) {
-// Fallback to unpkg
-await new Promise((resolve, reject) => {
-const s = document.createElement("script");
-s.src = "https://unpkg.com/astronomy-engine@2.1.3/browser/astronomy-browser.js";
-s.onload = resolve;
-s.onerror = reject;
-document.head.appendChild(s);
-});
-}
-
-if (!window.Astronomy) {
-throw new Error(
-currentLang === "en"
-? "Astronomy Engine failed to load (CDN blocked). Try disabling adblock/VPN or use another network."
-: "ספריית האסטרונומיה לא נטענה (ייתכן שה-CDN חסום). נסה/י לכבות adblock/VPN או להשתמש ברשת אחרת."
-);
-}
-}
 
 /**********************
 * Language switching
@@ -336,16 +313,14 @@ const minuteSelect = document.getElementById('minute');
 for (let i=0;i<60;i++) minuteSelect.options.add(new Option(i<10?'0'+i:String(i), String(i)));
 
 /**********************
-* ✅ FIXED Places: NEW PlaceAutocompleteElement (no legacy Autocomplete)
+* ✅ FIX #2: Places NEW PlaceAutocompleteElement
 **********************/
 window.initPlaces = async function initPlaces() {
 try {
 const container = document.getElementById("placeAutocompleteContainer");
 const debugEl = document.getElementById("placeDebug");
-
 container.innerHTML = "";
 
-// New API (beta): importLibrary
 const placesLib = await google.maps.importLibrary("places");
 const PlaceAutocompleteElement = placesLib.PlaceAutocompleteElement;
 
@@ -356,24 +331,18 @@ placeAutocomplete.style.marginBottom = "16px";
 
 container.appendChild(placeAutocomplete);
 
-// IMPORTANT: new event is gmp-select (not gmp-place-changed)
 placeAutocomplete.addEventListener("gmp-select", async (ev) => {
 const prediction = ev.placePrediction;
 if (!prediction) return;
 
 const place = prediction.toPlace();
-await place.fetchFields({
-fields: ["formattedAddress", "location", "utcOffsetMinutes"]
-});
+await place.fetchFields({ fields: ["formattedAddress", "location", "utcOffsetMinutes"] });
 
 if (!place.location) return;
 
 document.getElementById("lat").value = place.location.lat();
 document.getElementById("lon").value = place.location.lng();
-
-// utcOffsetMinutes is available; for accuracy, timezone should be computed server-side later
-const offsetHours = (place.utcOffsetMinutes ?? 0) / 60;
-document.getElementById("tz").value = offsetHours;
+document.getElementById("tz").value = ((place.utcOffsetMinutes ?? 0) / 60);
 
 if (debugEl) debugEl.textContent = place.formattedAddress || "";
 setError(null);
@@ -390,20 +359,17 @@ setError(currentLang === 'en'
 * Core astronomy
 **********************/
 function getPlanetLon(body, time) {
-const Astronomy = window.Astronomy;
 const vec = Astronomy.GeoVector(body, time, false);
 const ecl = Astronomy.Ecliptic(vec);
 return norm360(ecl.elon);
 }
 
 function getNodeLon(time) {
-const Astronomy = window.Astronomy;
 if (Astronomy.MoonNode) return norm360(Astronomy.MoonNode(time));
 return 0;
 }
 
 function meanObliquityDeg(time) {
-const Astronomy = window.Astronomy;
 const jd = Astronomy.JulianDay(time);
 const T = (jd - 2451545.0)/36525.0;
 const epsArcsec = 84381.448 - 46.8150*T - 0.00059*T*T + 0.001813*T*T*T;
@@ -411,7 +377,6 @@ return epsArcsec/3600.0;
 }
 
 function localSiderealTimeDeg(time, lonDegEast) {
-const Astronomy = window.Astronomy;
 const gstHours = Astronomy.SiderealTime(time);
 const gstDeg = norm360(gstHours*15);
 return norm360(gstDeg + lonDegEast);
@@ -487,7 +452,8 @@ return idx + 1;
 }
 
 /**********************
-* Lots (your array)
+* Lots (YOUR LIST)
+* (kept exactly as you pasted)
 **********************/
 const lotsDefinitions = [
 { nameEn: 'Puṇya (Fortune)', nameHe: 'חלק המזל (פורטונה)', meaningEn: 'Luck, prosperity, health and general well-being', meaningHe: 'מזל, שגשוג, בריאות ורווחה כללית', day: longs => longs.asc + longs.moon - longs.sun, night: longs => longs.asc + longs.sun - longs.moon },
@@ -543,7 +509,7 @@ const lotsDefinitions = [
 ];
 
 /**********************
-* Drawing chart
+* Drawing chart (unchanged)
 **********************/
 function drawChartSvg({svgId, planets, asc, mc, houseCusps}) {
 const svg = d3.select('#'+svgId);
@@ -694,9 +660,14 @@ houseCusps: state.houseCusps
 async function computeChartFromForm() {
 setError(null);
 
-// ✅ FIX: guarantee Astronomy exists before using it
-await ensureAstronomyLoaded();
-const Astronomy = window.Astronomy;
+// ✅ hard stop if Astronomy engine still didn't load
+if (typeof window.Astronomy === 'undefined') {
+throw new Error(
+currentLang === 'en'
+? 'Astronomy Engine did not load (Astronomy is undefined). Check Network tab for astronomy.browser.min.js.'
+: 'Astronomy Engine לא נטען (Astronomy לא מוגדר). בדוק/י ב-Network את astronomy.browser.min.js.'
+);
+}
 
 const month = parseInt(document.getElementById('month').value, 10);
 const day = parseInt(document.getElementById('day').value, 10);
@@ -721,12 +692,11 @@ throw new Error(currentLang==='en'
 
 const lat = parseFloat(latStr);
 const lon = parseFloat(lonStr);
-const tzHours = parseFloat(tzStr || '0'); // from Places utcOffsetMinutes
+const tzHours = parseFloat(tzStr || '0');
 
 let hour24 = hour12 % 12;
 if (ampm === 'PM') hour24 += 12;
 
-// Convert local time -> UTC using tzHours
 const utcMs = Date.UTC(year, month-1, day, hour24, minute, 0) - tzHours*3600*1000;
 const time = Astronomy.MakeTime(new Date(utcMs));
 
@@ -751,18 +721,15 @@ const planets = [
 ];
 
 const aspects = computeAspects(planets);
-
 const byKey = Object.fromEntries(planets.map(p=>[p.key, p.lon]));
+
 const house2 = houseCusps[1];
 const house8 = houseCusps[7];
 const house9 = houseCusps[8];
-
 const lord2 = rulerLongitude(house2, byKey);
 const lord9 = rulerLongitude(house9, byKey);
 
-// day/night approximation using Sun house (MVP)
-const sunLon = byKey.Sun;
-const sunHouse = houseOfLongitude(sunLon, houseCusps);
+const sunHouse = houseOfLongitude(byKey.Sun, houseCusps);
 const isDay = (sunHouse >= 7 && sunHouse <= 12);
 
 const longsBase = {
@@ -809,10 +776,11 @@ setError(err.message || String(err));
 });
 </script>
 
-<!-- ✅ FIX: correct loading pattern + beta + async loading + callback -->
+<!-- ✅ FIX #3: Google Maps loads last, calls initPlaces -->
 <script
 src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCaCfPdQCwYnssAEUM8TeDsm1sWKqLJ-CQ&v=beta&libraries=places&loading=async&callback=initPlaces"
 async
 defer></script>
+
 </body>
 </html>
