@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy</title>
+    <style>
+        body {
+            background-color: #000;
+            color: #fff;
+            font-family: 'Georgia', serif;
+            margin: 0;
+            padding: 20px;
+            background-image: url('https://images.unsplash.com/photo-1505506874110-6a7a69039b08?auto=format&fit=crop&q=80');
+            background-size: cover;
+            background-attachment: fixed;
+            direction: ltr;
+        }
+        .rtl {
+            direction: rtl;
+            font-family: 'Arial', sans-serif;
+        }
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 30px;
+            background: rgba(20, 20, 40, 0.85);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+            backdrop-filter: blur(8px);
+        }
+        h1 {
+            color: #ffd700;
+        }
+        h2 {
+            color: #ffd700;
+            margin-top: 20px;
+        }
+        p {
+            line-height: 1.6;
+            color: #ddd;
+        }
+        a {
+            color: #ffd700;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 data-en="Privacy Policy" data-he="מדיניות פרטיות">Privacy Policy</h1>
+        <p data-en="Effective Date: February 3, 2026" data-he="תאריך תוקף: 3 בפברואר 2026">Effective Date: February 3, 2026</p>
+
+        <h2 data-en="1. Data Collection" data-he="1. איסוף נתונים">1. Data Collection</h2>
+        <p data-en="We collect birth date, time, and location solely to calculate your astrology chart. This data is processed in your browser and not stored or shared." data-he="אנו אוספים תאריך, שעה ומיקום לידה רק לחישוב מפת האסטרולוגיה שלך. הנתונים מעובדים בדפדפן שלך ולא נשמרים או משותפים.">We collect birth date, time, and location solely to calculate your astrology chart. This data is processed in your browser and not stored or shared.</p>
+
+        <h2 data-en="2. Use of Data" data-he="2. שימוש בנתונים">2. Use of Data</h2>
+        <p data-en="Data is used only for chart generation. No marketing or third-party sharing." data-he="הנתונים משמשים רק לייצור המפה. ללא שיווק או שיתוף עם צדדים שלישיים.">Data is used only for chart generation. No marketing or third-party sharing.</p>
+
+        <h2 data-en="3. Consent" data-he="3. הסכמה">3. Consent</h2>
+        <p data-en="By using the site, you consent to this policy. Withdraw by stopping use." data-he="בשימוש באתר, אתה מסכים למדיניות זו. בטל הסכמה על ידי הפסקת שימוש.">By using the site, you consent to this policy. Withdraw by stopping use.</p>
+
+        <h2 data-en="4. Security" data-he="4. אבטחה">4. Security</h2>
+        <p data-en="We use HTTPS and client-side processing. Third-party (Google Maps) may use cookies with consent." data-he="אנו משתמשים ב-HTTPS ועיבוד בצד הלקוח. צד שלישי (גוגל מפות) עשוי להשתמש בעוגיות עם הסכמה.">We use HTTPS and client-side processing. Third-party (Google Maps) may use cookies with consent.</p>
+
+        <h2 data-en="5. Your Rights" data-he="5. זכויותיך">5. Your Rights</h2>
+        <p data-en="Access, correct, or delete data (none stored). Contact us for help." data-he="גישה, תיקון או מחיקה של נתונים (אף נתונים לא נשמרים). צור קשר לעזרה.">Access, correct, or delete data (none stored). Contact us for help.</p>
+
+        <h2 data-en="6. Third Parties" data-he="6. צדדים שלישיים">6. Third Parties</h2>
+        <p data-en="Google Places API - see their privacy policy." data-he="גוגל Places API - ראה מדיניות הפרטיות שלהם.">Google Places API - see their <a href="https://policies.google.com/privacy">privacy policy</a>.</p>
+
+        <h2 data-en="7. Changes & Contact" data-he="7. שינויים ויצירת קשר">7. Changes & Contact</h2>
+        <p data-en="Policy may update. Contact [your email] for questions." data-he="המדיניות עשויה להתעדכן. צור קשר [כתובת הדוא\"ל שלך] לשאלות.">Policy may update. Contact [your email] for questions.</p>
+
+        <a href="index.html" data-en="Back to Home" data-he="חזור לדף הבית">Back to Home</a>
+    </div>
+
+    <script>
+        const lang = navigator.language.startsWith('he') ? 'he' : 'en';
+        document.body.classList.toggle('rtl', lang === 'he');
+        document.querySelectorAll('[data-en]').forEach(el => {
+            el.textContent = el.getAttribute(`data-${lang}`);
+        });
+    </script>
+</body>
+</html>
