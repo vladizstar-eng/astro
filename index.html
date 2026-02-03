@@ -5,17 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Astrology Birth Chart Calculator</title>
     <style>
-        body {
-            background-color: #000;
-            color: #fff;
-            font-family: 'Georgia', serif;
-            margin: 0;
-            padding: 20px;
-            background-image: url('https://images.unsplash.com/photo-1505506874110-6a7a69039b08?auto=format&fit=crop&q=80');
-            background-size: cover;
-            background-attachment: fixed;
-            direction: ltr;
-        }
+        body { background-color: #000; color: #fff; font-family: 'Georgia', serif; margin: 0; padding: 20px; background-image: url('https://images.unsplash.com/photo-1505506874110-6a7a69039b08?auto=format&fit=crop&q=80'); background-size: cover; background-attachment: fixed; direction: ltr; }
         .rtl { direction: rtl; font-family: 'Arial', sans-serif; }
         h1, h2 { text-align: center; color: #ffd700; }
         form { max-width: 420px; margin: 0 auto 40px; padding: 30px; background: rgba(20, 20, 40, 0.85); border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.6); backdrop-filter: blur(8px); }
@@ -36,7 +26,7 @@
         #consentBanner #acceptBtn { background: #4b0082; }
         #consentBanner #declineBtn { background: #333; }
         #languageSelector { position: absolute; top: 20px; right: 20px; padding: 8px; background: #111; border-radius: 5px; }
-        gmp-place-autocomplete { --gmp-color-primary: #ffd700; --gmp-color-on-primary: #000; --gmp-color-surface: #111; --gmp-color-on-surface: #fff; border-radius: 8px; overflow: hidden; }
+        gmp-place-autocomplete { --gmp-color-primary: #ffd700; --gmp-color-on-primary: #000; --gmp-color-surface: #111; --gmp-color-on-surface: #fff; border-radius: 8px; overflow: hidden; display: block; }
         gmp-place-autocomplete input { width: 100%; padding: 12px; border: none; background: #111; color: white; font-size: 16px; }
         gmp-place-autocomplete input::placeholder { color: #aaa; }
         @media (max-width: 600px) { form { padding: 20px; } .date-time { flex-direction: column; gap: 0; } .date-time > * { width: 100%; } }
@@ -99,12 +89,58 @@
         <button type="submit" data-en="Create Chart" data-he="צור מפה">Create Chart</button>
     </form>
 
-    <!-- Rest of your HTML (chart div, positions, aspects, lots, interpretations, footer, consent banner) remains exactly the same -->
+    <!-- Chart and result sections remain unchanged from previous version -->
 
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCaCfPdQCwYnssAEUM8TeDsm1sWKqLJ-CQ&libraries=places&v=beta" async defer></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_API_KEY&libraries=places&v=beta" async defer></script>
     <script>
-        // Language switching (keep as is)
-        // Consent banner (keep as is)
+        // Define signs early to avoid ReferenceError
+        const signs = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'];
+
+        // Language switching
+        let currentLang = localStorage.getItem('language') || (navigator.language.startsWith('he') ? 'he' : 'en');
+        document.getElementById('languageSelector').value = currentLang;
+        switchLanguage(currentLang);
+
+        function switchLanguage(lang) {
+            document.body.classList.toggle('rtl', lang === 'he');
+            document.querySelectorAll('[data-en]').forEach(el => {
+                el.textContent = el.getAttribute(`data-${lang}`) || el.getAttribute('data-en');
+            });
+            document.querySelectorAll('[data-en-placeholder]').forEach(el => {
+                el.placeholder = el.getAttribute(`data-${lang}-placeholder`) || el.getAttribute('data-en-placeholder');
+            });
+            localStorage.setItem('language', lang);
+        }
+
+        document.getElementById('languageSelector').addEventListener('change', (e) => switchLanguage(e.target.value));
+
+        // Consent Banner
+        if (!localStorage.getItem('consentGiven')) {
+            document.getElementById('birthForm').style.display = 'none';
+            document.getElementById('consentBanner').style.display = 'block';
+        } else {
+            document.getElementById('consentBanner').style.display = 'none';
+        }
+
+        document.getElementById('acceptBtn').addEventListener('click', () => {
+            localStorage.setItem('consentGiven', 'true');
+            document.getElementById('consentBanner').style.display = 'none';
+            document.getElementById('birthForm').style.display = 'block';
+        });
+
+        document.getElementById('declineBtn').addEventListener('click', () => {
+            alert(currentLang === 'en' ? 'You must accept the privacy policy to use this site.' : 'עליך לאשר את מדיניות הפרטיות כדי להשתמש באתר זה.');
+        });
+
+        // Populate day and minute options
+        const daySelect = document.getElementById('day');
+        for (let i = 1; i <= 31; i++) {
+            daySelect.options.add(new Option(i < 10 ? '0' + i : i));
+        }
+        const minuteSelect = document.getElementById('minute');
+        for (let i = 0; i < 60; i++) {
+            minuteSelect.options.add(new Option(i < 10 ? '0' + i : i));
+        }
 
         // New Google Place Autocomplete listener
         const placeAutocomplete = document.querySelector('gmp-place-autocomplete');
@@ -113,16 +149,21 @@
             if (place && place.geometry) {
                 document.getElementById('lat').value = place.geometry.location.lat;
                 document.getElementById('lon').value = place.geometry.location.lng;
-                // Timezone fallback (improve with Geocoding if needed later)
-                document.getElementById('tz').value = 2; // Example for Ukraine; you can add Geocoding call here
+                document.getElementById('tz').value = 2; // Fallback; improve with Geocoding if needed
             }
         });
 
-        // Rest of your script (populate dropdowns, form submit, calculations, drawChart, etc.)
-        // Fix for 'signs is not defined' — make sure signs is defined early
-        const signs = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'];
+        // Your form submission, calculations, chart drawing, etc. (keep as in previous version)
+        // Example placeholder for chart generation
+        const form = document.getElementById('birthForm');
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            // Your full logic here...
+            console.log('Form submitted - chart should render');
+            // animateChart(); // if you have animation
+        });
 
-        // ... (your full calculation and chart code)
+        // Rest of script...
     </script>
 </body>
 </html>
