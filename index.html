@@ -77,6 +77,7 @@ padding: 8px; background: #111; border-radius: 5px;
 }
 .hint { font-size: 0.9em; color: #ccc; margin-top: -8px; margin-bottom: 16px; }
 .error { color: #ffb3b3; }
+#placeAutocompleteContainer { margin-bottom: 0; }
 @media (max-width: 600px) {
 form { padding: 20px; }
 .date-time { flex-direction: column; gap: 0; }
@@ -129,11 +130,18 @@ form { padding: 20px; }
 </select>
 </div>
 
-<label for="location" data-en="I was born in: (City, state, country)" data-he="נולדתי ב: (עיר, מדינה, ארץ)">I was born in: (City, state, country)</label>
-<input type="text" id="location" required data-en-placeholder="e.g. Donetsk, Ukraine" data-he-placeholder="למשל, דונצק, אוקראינה" />
-<div class="hint" id="locHint" data-en="Pick a suggestion from the dropdown so we can get exact coordinates." data-he="בחר/י הצעה מהרשימה כדי שנוכל לקבל קואורדינטות מדויקות.">
+<!-- ✅ FIX: new Places UI container (no legacy input autocomplete) -->
+<label data-en="I was born in: (City, state, country)" data-he="נולדתי ב: (עיר, מדינה, ארץ)">
+I was born in: (City, state, country)
+</label>
+
+<div id="placeAutocompleteContainer"></div>
+<div class="hint" id="locHint"
+data-en="Pick a suggestion from the dropdown so we can get exact coordinates."
+data-he="בחר/י הצעה מהרשימה כדי שנוכל לקבל קואורדינטות מדויקות.">
 Pick a suggestion from the dropdown so we can get exact coordinates.
 </div>
+<small id="placeDebug" style="display:block;margin:-8px 0 16px;color:#aaa;"></small>
 
 <input type="hidden" id="lat" />
 <input type="hidden" id="lon" />
@@ -206,7 +214,6 @@ const aspectTypes = {
 180:{ en:'Opposition', he:'ניגוד', orb: 8 }
 };
 
-// Traditional rulerships
 const signRulers = {
 Aries:'Mars', Taurus:'Venus', Gemini:'Mercury', Cancer:'Moon', Leo:'Sun', Virgo:'Mercury',
 Libra:'Venus', Scorpio:'Mars', Sagittarius:'Jupiter', Capricorn:'Saturn', Aquarius:'Saturn', Pisces:'Jupiter'
@@ -216,7 +223,6 @@ function norm360(x){ x%=360; if(x<0) x+=360; return x; }
 function degToRad(d){ return d*Math.PI/180; }
 function radToDeg(r){ return r*180/Math.PI; }
 function pad2(n){ return String(n).padStart(2,'0'); }
-function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
 
 function formatLon(lon, lang){
 const sIndex = Math.floor(norm360(lon)/30);
@@ -240,7 +246,6 @@ box.classList.add('error');
 box.textContent = msg;
 }
 
-// For “regenerate on language switch”
 let lastChartState = null;
 
 /**********************
@@ -259,10 +264,7 @@ document.querySelectorAll('[data-en-placeholder]').forEach(el => {
 el.placeholder = el.getAttribute(`data-${lang}-placeholder`) || el.getAttribute('data-en-placeholder');
 });
 localStorage.setItem('language', lang);
-
-if (lastChartState) {
-renderAll(lastChartState); // re-render text labels in the chosen language
-}
+if (lastChartState) renderAll(lastChartState);
 }
 document.getElementById('languageSelector').addEventListener('change', (e) => switchLanguage(e.target.value));
 switchLanguage(currentLang);
@@ -298,90 +300,71 @@ const minuteSelect = document.getElementById('minute');
 for (let i=0;i<60;i++) minuteSelect.options.add(new Option(i<10?'0'+i:String(i), String(i)));
 
 /**********************
-* Google Places (stable init)
-* - we define initAutocomplete globally
-* - Google script loads with callback=initAutocomplete
+* ✅ FIXED Places: NEW PlaceAutocompleteElement (no legacy Autocomplete)
 **********************/
-let placesAutocomplete = null;
-
-window.initAutocomplete = function initAutocomplete() {
+window.initPlaces = async function initPlaces() {
 try {
-const input = document.getElementById('location');
-placesAutocomplete = new google.maps.places.Autocomplete(input, {
-fields: ['geometry','formatted_address','utc_offset_minutes','name']
-});
-placesAutocomplete.addListener('place_changed', () => {
-const place = placesAutocomplete.getPlace();
-if (!place || !place.geometry) {
-setError(currentLang==='en' ? 'Please select a location from the dropdown.' : 'אנא בחר/י מיקום מהרשימה.');
-return;
-}
-setError(null);
-const lat = place.geometry.location.lat();
-const lon = place.geometry.location.lng();
-document.getElementById('lat').value = lat;
-document.getElementById('lon').value = lon;
+const container = document.getElementById("placeAutocompleteContainer");
+const debugEl = document.getElementById("placeDebug");
 
-// utc_offset_minutes is often missing in modern Places. We'll compute timezone via Time Zone API on submit.
-document.getElementById('tz').value = '';
+container.innerHTML = "";
+
+// New API (beta): importLibrary
+const placesLib = await google.maps.importLibrary("places");
+const PlaceAutocompleteElement = placesLib.PlaceAutocompleteElement;
+
+const placeAutocomplete = new PlaceAutocompleteElement();
+placeAutocomplete.style.width = "100%";
+placeAutocomplete.style.display = "block";
+placeAutocomplete.style.marginBottom = "16px";
+
+container.appendChild(placeAutocomplete);
+
+// IMPORTANT: new event is gmp-select (not gmp-place-changed)
+placeAutocomplete.addEventListener("gmp-select", async (ev) => {
+const prediction = ev.placePrediction;
+if (!prediction) return;
+
+const place = prediction.toPlace();
+await place.fetchFields({
+fields: ["formattedAddress", "location", "utcOffsetMinutes"]
+});
+
+if (!place.location) return;
+
+document.getElementById("lat").value = place.location.lat();
+document.getElementById("lon").value = place.location.lng();
+
+// utcOffsetMinutes is available; for accuracy, timezone should be computed server-side later
+const offsetHours = (place.utcOffsetMinutes ?? 0) / 60;
+document.getElementById("tz").value = offsetHours;
+
+if (debugEl) debugEl.textContent = place.formattedAddress || "";
+setError(null);
 });
 } catch (err) {
-console.error(err);
-setError(currentLang==='en'
-? 'Google Places failed to initialize. Check your API key / restrictions.'
-: 'אתחול Google Places נכשל. בדוק/י מפתח API והגבלות.');
+console.error("Places init failed:", err);
+setError(currentLang === 'en'
+? 'Google Places failed to load. Check API key, billing, and referrer restrictions.'
+: 'Google Places לא נטען. בדוק/י מפתח API, חיוב והגבלות דומיין.');
 }
 };
 
 /**********************
-* Timezone by lat/lon + timestamp (best practice)
-**********************/
-async function fetchTimeZoneOffsetHours({lat, lon, utcTimestampSeconds, apiKey}) {
-const url =
-`https://maps.googleapis.com/maps/api/timezone/json?location=${encodeURIComponent(lat + ',' + lon)}&timestamp=${encodeURIComponent(utcTimestampSeconds)}&key=${encodeURIComponent(apiKey)}`;
-
-const res = await fetch(url);
-if (!res.ok) throw new Error('Timezone HTTP error');
-const data = await res.json();
-
-if (data.status !== 'OK') {
-throw new Error(`Timezone API: ${data.status}${data.errorMessage ? ' - '+data.errorMessage : ''}`);
-}
-// rawOffset + dstOffset are seconds
-const totalSeconds = (data.rawOffset || 0) + (data.dstOffset || 0);
-return totalSeconds / 3600;
-}
-
-/**********************
-* Core astronomy: planets
+* Core astronomy
 **********************/
 function getPlanetLon(body, time) {
-// Ecliptic longitude, geocentric
 const vec = Astronomy.GeoVector(body, time, false);
 const ecl = Astronomy.Ecliptic(vec);
 return norm360(ecl.elon);
 }
 
 function getNodeLon(time) {
-// True Node: Astronomy Engine has MoonNode() (ascending), if present in this build.
-// Fallback: mean node approximate if missing.
-if (Astronomy.MoonNode) {
-const node = Astronomy.MoonNode(time);
-return norm360(node);
-}
-// fallback: just return 0 with a warning
-console.warn('MoonNode not available in this Astronomy Engine build.');
+if (Astronomy.MoonNode) return norm360(Astronomy.MoonNode(time));
 return 0;
 }
 
-/**********************
-* ASC/MC + houses
-* - Uses sidereal time + obliquity
-* - Houses: Equal House from ASC (stable for MVP)
-**********************/
 function meanObliquityDeg(time) {
-// A good approximation; Astronomy Engine also has EarthTilt(time) in some builds.
-// We'll use a standard polynomial based on Julian centuries from J2000.
 const jd = Astronomy.JulianDay(time);
 const T = (jd - 2451545.0)/36525.0;
 const epsArcsec = 84381.448 - 46.8150*T - 0.00059*T*T + 0.001813*T*T*T;
@@ -389,45 +372,34 @@ return epsArcsec/3600.0;
 }
 
 function localSiderealTimeDeg(time, lonDegEast) {
-// Astronomy Engine has SiderealTime(time) returning hours.
-// We'll convert to degrees and add longitude.
 const gstHours = Astronomy.SiderealTime(time);
 const gstDeg = norm360(gstHours*15);
 return norm360(gstDeg + lonDegEast);
 }
 
 function ascendantDeg(lstDeg, latDeg, epsDeg) {
-// Formula: Asc = atan2( cos(eps)*sin(theta) - tan(phi)*sin(eps), cos(theta) )
-// theta = LST (in radians), phi = latitude
 const theta = degToRad(lstDeg);
 const phi = degToRad(latDeg);
 const eps = degToRad(epsDeg);
-
 const y = Math.cos(eps)*Math.sin(theta) - Math.tan(phi)*Math.sin(eps);
 const x = Math.cos(theta);
-const asc = radToDeg(Math.atan2(y, x));
-return norm360(asc);
+return norm360(radToDeg(Math.atan2(y, x)));
 }
 
 function midheavenDeg(lstDeg, epsDeg) {
-// MC ≈ arctan2( sin(theta)*cos(eps), cos(theta) )
 const theta = degToRad(lstDeg);
 const eps = degToRad(epsDeg);
 const y = Math.sin(theta)*Math.cos(eps);
 const x = Math.cos(theta);
-const mc = radToDeg(Math.atan2(y, x));
-return norm360(mc);
+return norm360(radToDeg(Math.atan2(y, x)));
 }
 
 function equalHousesFromAsc(asc) {
 const cusps = [];
 for (let i=0;i<12;i++) cusps.push(norm360(asc + i*30));
-return cusps; // house 1 cusp = asc, house 10 cusp = asc+270, etc.
+return cusps;
 }
 
-/**********************
-* Aspects
-**********************/
 function angleDiff(a,b){
 let d = Math.abs(norm360(a)-norm360(b));
 if (d>180) d = 360-d;
@@ -435,14 +407,12 @@ return d;
 }
 
 function computeAspects(planets) {
-// planets: [{key:'Sun', lon:...}, ...]
 const major = [0,60,90,120,180];
 const out = [];
 for (let i=0;i<planets.length;i++){
 for (let j=i+1;j<planets.length;j++){
 const A = planets[i], B = planets[j];
 const d = angleDiff(A.lon, B.lon);
-
 for (const asp of major) {
 const baseOrb = aspectTypes[asp].orb;
 const lumOrb = (A.key==='Sun'||A.key==='Moon'||B.key==='Sun'||B.key==='Moon') ? 1.5 : 0;
@@ -458,9 +428,26 @@ break;
 return out.sort((x,y)=>x.orb-y.orb);
 }
 
+function signOfLongitude(lon) {
+return signsEn[Math.floor(norm360(lon)/30)];
+}
+
+function rulerLongitude(cuspLon, planetLonByKey) {
+const sign = signOfLongitude(cuspLon);
+const ruler = signRulers[sign];
+const lon = planetLonByKey[ruler];
+return (typeof lon === 'number') ? lon : 0;
+}
+
+function houseOfLongitude(lon, houseCusps) {
+const a = houseCusps[0];
+const rel = norm360(lon - a);
+const idx = Math.floor(rel / 30);
+return idx + 1;
+}
+
 /**********************
-* Lots (your list)
-* NOTE: This is the exact array from your uploaded index file.
+* Lots (your array)
 **********************/
 const lotsDefinitions = [
 { nameEn: 'Puṇya (Fortune)', nameHe: 'חלק המזל (פורטונה)', meaningEn: 'Luck, prosperity, health and general well-being', meaningHe: 'מזל, שגשוג, בריאות ורווחה כללית', day: longs => longs.asc + longs.moon - longs.sun, night: longs => longs.asc + longs.sun - longs.moon },
@@ -516,7 +503,7 @@ const lotsDefinitions = [
 ];
 
 /**********************
-* Drawing the wheel
+* Drawing chart
 **********************/
 function drawChartSvg({svgId, planets, asc, mc, houseCusps}) {
 const svg = d3.select('#'+svgId);
@@ -530,20 +517,17 @@ const ringOuter = R;
 const ringInner = R*0.78;
 const planetRing = R*0.62;
 
-// helper mapping: astrology wheel usually has 0° Aries at left or right depending style.
-// We'll put 0° Aries at the right (0 radians) and go counterclockwise.
-// Convert lon => angle in radians:
 function lonToAngleRad(lon){
-// 0° => 0 rad (east). Increase CCW.
-return degToRad(90 - lon); // rotate so Aries starts at top? visually nicer
+return degToRad(90 - lon);
 }
 
-// background circles
-svg.append('circle').attr('cx',cx).attr('cy',cy).attr('r',ringOuter).attr('fill','rgba(0,0,0,0.25)').attr('stroke','#ffd700').attr('stroke-width',2);
-svg.append('circle').attr('cx',cx).attr('cy',cy).attr('r',ringInner).attr('fill','none').attr('stroke','rgba(255,215,0,0.35)').attr('stroke-width',1.5);
-svg.append('circle').attr('cx',cx).attr('cy',cy).attr('r',planetRing).attr('fill','none').attr('stroke','rgba(173,216,230,0.35)').attr('stroke-width',1);
+svg.append('circle').attr('cx',cx).attr('cy',cy).attr('r',ringOuter)
+.attr('fill','rgba(0,0,0,0.25)').attr('stroke','#ffd700').attr('stroke-width',2);
+svg.append('circle').attr('cx',cx).attr('cy',cy).attr('r',ringInner)
+.attr('fill','none').attr('stroke','rgba(255,215,0,0.35)').attr('stroke-width',1.5);
+svg.append('circle').attr('cx',cx).attr('cy',cy).attr('r',planetRing)
+.attr('fill','none').attr('stroke','rgba(173,216,230,0.35)').attr('stroke-width',1);
 
-// sign boundaries
 for (let i=0;i<12;i++){
 const lon = i*30;
 const a = lonToAngleRad(lon);
@@ -554,7 +538,6 @@ const y2 = cy - ringOuter*Math.sin(a);
 svg.append('line').attr('x1',x1).attr('y1',y1).attr('x2',x2).attr('y2',y2)
 .attr('stroke','rgba(255,215,0,0.35)').attr('stroke-width',1);
 
-// sign labels
 const midLon = lon + 15;
 const am = lonToAngleRad(midLon);
 const tx = cx + (ringOuter+14)*Math.cos(am);
@@ -570,21 +553,17 @@ svg.append('text')
 .text(signLabel);
 }
 
-// house lines
 for (let i=0;i<12;i++){
 const lon = houseCusps[i];
 const a = lonToAngleRad(lon);
-const x1 = cx + 0*Math.cos(a);
-const y1 = cy - 0*Math.sin(a);
 const x2 = cx + ringInner*Math.cos(a);
 const y2 = cy - ringInner*Math.sin(a);
 
 svg.append('line')
-.attr('x1',x1).attr('y1',y1).attr('x2',x2).attr('y2',y2)
+.attr('x1',cx).attr('y1',cy).attr('x2',x2).attr('y2',y2)
 .attr('stroke','rgba(173,216,230,0.35)')
 .attr('stroke-width',1);
 
-// house number labels
 const mid = norm360(houseCusps[i] + 15);
 const am = lonToAngleRad(mid);
 const tx = cx + (ringInner*0.90)*Math.cos(am);
@@ -598,7 +577,6 @@ svg.append('text')
 .text(String(i+1));
 }
 
-// ASC/MC markers
 function marker(lon, label){
 const a = lonToAngleRad(lon);
 const x = cx + ringInner*Math.cos(a);
@@ -610,7 +588,6 @@ svg.append('text').attr('x',x).attr('y',y-10).attr('fill','#ffd700').attr('font-
 marker(asc, planetNames[currentLang].Asc);
 marker(mc, planetNames[currentLang].MC);
 
-// planets
 planets.forEach(p=>{
 const a = lonToAngleRad(p.lon);
 const x = cx + planetRing*Math.cos(a);
@@ -625,11 +602,7 @@ svg.append('text')
 });
 }
 
-/**********************
-* Render outputs
-**********************/
 function renderAll(state) {
-// positions
 const posList = document.getElementById('posList');
 posList.innerHTML = '';
 state.planets.forEach(p=>{
@@ -638,7 +611,6 @@ li.textContent = `${planetNames[currentLang][p.key] || p.key}: ${formatLon(p.lon
 posList.appendChild(li);
 });
 
-// aspects
 const aspList = document.getElementById('aspList');
 aspList.innerHTML = '';
 state.aspects.forEach(a=>{
@@ -655,7 +627,6 @@ li.textContent = currentLang==='en' ? 'No major aspects within orb.' : 'אין �
 aspList.appendChild(li);
 }
 
-// lots
 const lotList = document.getElementById('lotList');
 lotList.innerHTML = '';
 state.lots.forEach(L=>{
@@ -666,13 +637,11 @@ li.textContent = `${name}: ${formatLon(L.lon, currentLang)} — ${meaning}`;
 lotList.appendChild(li);
 });
 
-// simple interpretation placeholder (you can replace with your book-based text blocks later)
-const interp = document.getElementById('interpText');
-interp.textContent = currentLang==='en'
-? 'Chart generated successfully. (Replace this paragraph with your literature-based interpretation blocks.)'
-: 'המפה נוצרה בהצלחה. (אפשר להחליף פסקה זו בפרשנויות מבוססות ספרות.)';
+document.getElementById('interpText').textContent =
+currentLang==='en'
+? 'Chart generated successfully. (Replace this paragraph with literature-based interpretation.)'
+: 'המפה נוצרה בהצלחה. (אפשר להחליף פסקה זו בפרשנות מבוססת ספרות.)';
 
-// svg
 drawChartSvg({
 svgId: 'chartSvg',
 planets: state.planets,
@@ -682,10 +651,7 @@ houseCusps: state.houseCusps
 });
 }
 
-/**********************
-* Compute chart pipeline
-**********************/
-async function computeChartFromForm({googleApiKey}) {
+async function computeChartFromForm() {
 setError(null);
 
 const month = parseInt(document.getElementById('month').value, 10);
@@ -698,37 +664,25 @@ const ampm = document.getElementById('ampm').value;
 
 const latStr = document.getElementById('lat').value;
 const lonStr = document.getElementById('lon').value;
+const tzStr = document.getElementById('tz').value;
 
 if (!month || !day || !year || !hour12 || isNaN(minute)) {
 throw new Error(currentLang==='en' ? 'Please fill date and time.' : 'אנא מלא/י תאריך ושעה.');
 }
 if (!latStr || !lonStr) {
 throw new Error(currentLang==='en'
-? 'Please select a location from the dropdown list (so we can get coordinates).'
-: 'אנא בחר/י מיקום מהרשימה (כדי לקבל קואורדינטות).');
+? 'Please select a location suggestion from the dropdown.'
+: 'אנא בחר/י מיקום מהרשימה.');
 }
 
 const lat = parseFloat(latStr);
 const lon = parseFloat(lonStr);
+const tzHours = parseFloat(tzStr || '0'); // from Places utcOffsetMinutes
 
 let hour24 = hour12 % 12;
 if (ampm === 'PM') hour24 += 12;
 
-// First: build a UTC timestamp guess from user-entered local time using browser offset (temporary),
-// then refine with Time Zone API.
-// We'll do it properly:
-// 1) Assume local time as if it were UTC => get a rough UTC timestamp
-// 2) Query Time Zone API with that rough UTC timestamp, get offset
-// 3) Recompute correct UTC moment
-const roughUtcMs = Date.UTC(year, month-1, day, hour24, minute, 0);
-
-const tzHours = await fetchTimeZoneOffsetHours({
-lat, lon,
-utcTimestampSeconds: Math.floor(roughUtcMs/1000),
-apiKey: googleApiKey
-});
-
-// Correct UTC = local time - tzOffset
+// Convert local time -> UTC using tzHours
 const utcMs = Date.UTC(year, month-1, day, hour24, minute, 0) - tzHours*3600*1000;
 const time = Astronomy.MakeTime(new Date(utcMs));
 
@@ -736,10 +690,8 @@ const eps = meanObliquityDeg(time);
 const lst = localSiderealTimeDeg(time, lon);
 const asc = ascendantDeg(lst, lat, eps);
 const mc = midheavenDeg(lst, eps);
-
 const houseCusps = equalHousesFromAsc(asc);
 
-// planets
 const planets = [
 { key:'Sun', lon: getPlanetLon(Astronomy.Body.Sun, time) },
 { key:'Moon', lon: getPlanetLon(Astronomy.Body.Moon, time) },
@@ -754,18 +706,8 @@ const planets = [
 { key:'Node', lon: getNodeLon(time) }
 ];
 
-// Determine day/night (Sun above horizon)
-// Use Astronomy Engine for altitude:
-const observer = new Astronomy.Observer(lat, lon, 0);
-const sunHor = Astronomy.Horizon(time, observer, planets[0].lon, 0, 'normal'); // not correct usage (needs RA/Dec)
-// Instead: use built-in SearchRiseSet would be heavy. We'll use a robust method:
-// Approx rule: if Sun is within houses 7-12 it's above horizon in equal house system.
-// We'll compute Sun house with our equal house cusps.
-const sunLon = planets.find(p=>p.key==='Sun').lon;
-const sunHouse = houseOfLongitude(sunLon, houseCusps);
-const isDay = (sunHouse >= 7 && sunHouse <= 12); // equal-house approximation
+const aspects = computeAspects(planets);
 
-// Build longs for lots
 const byKey = Object.fromEntries(planets.map(p=>[p.key, p.lon]));
 const house2 = houseCusps[1];
 const house8 = houseCusps[7];
@@ -774,7 +716,11 @@ const house9 = houseCusps[8];
 const lord2 = rulerLongitude(house2, byKey);
 const lord9 = rulerLongitude(house9, byKey);
 
-// We also need “punya” for one lot definition:
+// day/night approximation using Sun house (MVP)
+const sunLon = byKey.Sun;
+const sunHouse = houseOfLongitude(sunLon, houseCusps);
+const isDay = (sunHouse >= 7 && sunHouse <= 12);
+
 const longsBase = {
 asc,
 sun: byKey.Sun,
@@ -784,7 +730,6 @@ ven: byKey.Venus,
 mars: byKey.Mars,
 jup: byKey.Jupiter,
 sat: byKey.Saturn,
-// extra for your formulas:
 house2,
 house8,
 house9,
@@ -792,70 +737,24 @@ lord2,
 lord9
 };
 
-// Compute PoF (punya) first because later lots reference longs.punya
 const punya = isDay
 ? norm360(longsBase.asc + longsBase.moon - longsBase.sun)
 : norm360(longsBase.asc + longsBase.sun - longsBase.moon);
 
 const longs = { ...longsBase, punya };
 
-// lots
 const lots = lotsDefinitions.map(def=>{
 const raw = isDay ? def.day(longs) : def.night(longs);
 return { ...def, lon: norm360(raw) };
 });
 
-// aspects (exclude ASC/MC)
-const aspects = computeAspects(planets);
-
-return {
-timeUtcMs: utcMs,
-tzHours,
-lat, lon,
-eps, lst,
-asc, mc,
-houseCusps,
-planets,
-aspects,
-lots,
-isDay
-};
+return { planets, aspects, lots, asc, mc, houseCusps };
 }
 
-function houseOfLongitude(lon, houseCusps) {
-// houseCusps in increasing order but wrap at 360; we handle by shifting relative to house1
-const a = houseCusps[0];
-const rel = norm360(lon - a);
-const idx = Math.floor(rel / 30); // equal houses
-return idx + 1;
-}
-
-function signOfLongitude(lon) {
-const idx = Math.floor(norm360(lon)/30);
-return signsEn[idx];
-}
-
-function rulerLongitude(cuspLon, planetLonByKey) {
-const sign = signOfLongitude(cuspLon);
-const ruler = signRulers[sign];
-const lon = planetLonByKey[ruler];
-// if missing (shouldn't), fallback to 0
-return (typeof lon === 'number') ? lon : 0;
-}
-
-/**********************
-* Form submit
-**********************/
-const GOOGLE_API_KEY = 'AIzaSyCaCfPdQCwYnssAEUM8TeDsm1sWKqLJ-CQ'; // <-- replace
 document.getElementById('birthForm').addEventListener('submit', async (e) => {
 e.preventDefault();
 try {
-if (!GOOGLE_API_KEY || GOOGLE_API_KEY === 'YOUR_GOOGLE_API_KEY') {
-throw new Error(currentLang==='en'
-? 'Set your Google API key in the index.html (GOOGLE_API_KEY).'
-: 'הכנס/י את מפתח ה-API של Google בקובץ index.html (GOOGLE_API_KEY).');
-}
-const state = await computeChartFromForm({googleApiKey: GOOGLE_API_KEY});
+const state = await computeChartFromForm();
 lastChartState = state;
 renderAll(state);
 setError(null);
@@ -864,12 +763,12 @@ console.error(err);
 setError(err.message || String(err));
 }
 });
-
 </script>
 
-<!-- Google Maps JS (Places) with callback for reliable init -->
+<!-- ✅ FIX: correct loading pattern + beta + async loading + callback -->
 <script
-src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCaCfPdQCwYnssAEUM8TeDsm1sWKqLJ-CQ&libraries=places&callback=initAutocomplete"
-async defer></script>
+src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCaCfPdQCwYnssAEUM8TeDsm1sWKqLJ-CQ&v=beta&libraries=places&loading=async&callback=initPlaces"
+async
+defer></script>
 </body>
 </html>
