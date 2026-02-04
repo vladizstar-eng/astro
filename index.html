@@ -1,252 +1,180 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Astrology Birth Chart Calculator</title>
-
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-
 <style>
-:root{
---bg:#0b0b12;
---panel:#151524;
---panel2:#0f0f1a;
---text:#f2f2f5;
---muted:#b9b9c6;
---accent:#7c3aed;
---accent2:#a78bfa;
---danger:#ef4444;
---ok:#22c55e;
---gold:#eab308;
+body {
+background-color: #000;
+color: #fff;
+font-family: 'Georgia', serif;
+margin: 0;
+padding: 20px;
+background-image: url('https://images.unsplash.com/photo-1505506874110-6a7a69039b08?auto=format&fit=crop&q=80');
+background-size: cover;
+background-attachment: fixed;
+direction: ltr;
 }
-
-html,body{height:100%;}
-body{
-margin:0;
-background:radial-gradient(1000px 600px at 20% 10%, #1b1b34, transparent 60%),
-radial-gradient(900px 500px at 80% 20%, #2a1340, transparent 60%),
-var(--bg);
-color:var(--text);
-font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+.rtl { direction: rtl; font-family: 'Arial', sans-serif; }
+h1, h2 { text-align: center; color: #ffd700; }
+form {
+max-width: 420px; margin: 0 auto 40px; padding: 30px;
+background: rgba(20, 20, 40, 0.85);
+border-radius: 16px;
+box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+backdrop-filter: blur(8px);
 }
-
-.wrap{
-max-width:1100px;
-margin:0 auto;
-padding:28px 18px 60px;
-display:grid;
-grid-template-columns: 380px 1fr;
-gap:22px;
-align-items:start;
+label { display: block; margin: 12px 0 6px; font-weight: bold; color: #ddd; }
+input, select {
+width: 100%; padding: 12px; margin-bottom: 16px;
+border: 1px solid #555; border-radius: 8px;
+background: #111; color: #fff; font-size: 16px;
+box-sizing: border-box;
 }
-
-header{
-grid-column:1 / -1;
-display:flex;
-justify-content:space-between;
-align-items:center;
-gap:12px;
-margin-bottom:8px;
+.date-time { display: flex; gap: 8px; }
+.date-time > * { flex: 1; }
+button {
+width: 100%;
+padding: 14px;
+background: linear-gradient(135deg, #6a1b9a, #4b0082);
+color: #fff;
+border: none;
+border-radius: 8px;
+font-size: 18px;
+font-weight: bold;
+cursor: pointer;
+transition: all 0.3s;
 }
-
-h1{
-margin:0;
-font-family:Cinzel, serif;
-font-weight:600;
-letter-spacing:.02em;
-color:#f6d38a;
-text-shadow:0 0 18px rgba(124,58,237,.25);
-font-size:28px;
+button:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(106, 27, 154, 0.5); }
+#chart { max-width: 800px; margin: 0 auto 40px; text-align: center; }
+#positions, #aspects, #lots, #interpretations {
+max-width: 800px;
+margin: 30px auto;
+background: rgba(20, 20, 40, 0.75);
+padding: 25px;
+border-radius: 16px;
+backdrop-filter: blur(8px);
 }
-
-.langToggle{
-display:flex;
-gap:8px;
-align-items:center;
-background:rgba(255,255,255,.06);
-border:1px solid rgba(255,255,255,.12);
-border-radius:999px;
-padding:6px 10px;
-font-size:13px;
-color:var(--muted);
-user-select:none;
+ul { list-style: none; padding: 0; }
+li { margin: 8px 0; color: #add8e6; font-size: 1.05em; }
+footer { text-align: center; margin-top: 40px; font-size: 0.9em; color: #aaa; }
+footer a { color: #ffd700; text-decoration: none; }
+#consentBanner {
+position: fixed; bottom: 0; left: 0; right: 0;
+background: rgba(0,0,0,0.9);
+padding: 20px;
+text-align: center;
+box-shadow: 0 -4px 10px rgba(0,0,0,0.5);
+z-index: 9999;
 }
-
-.langToggle button{
-background:transparent;
-border:0;
-color:var(--muted);
-font-weight:600;
-padding:4px 10px;
-border-radius:999px;
-cursor:pointer;
+#consentBanner button { margin: 10px; padding: 10px 20px; border-radius: 5px; }
+#consentBanner #acceptBtn { background: #4b0082; }
+#consentBanner #declineBtn { background: #333; }
+#languageSelector {
+position: absolute; top: 20px; right: 20px;
+padding: 8px; background: #111; border-radius: 5px;
 }
-.langToggle button.active{
-background:rgba(124,58,237,.35);
-color:white;
+.hint { font-size: 0.9em; color: #ccc; margin-top: -8px; margin-bottom: 16px; }
+.error { color: #ffb3b3; }
+#placeAutocompleteContainer { margin-bottom: 0; }
+@media (max-width: 600px) {
+form { padding: 20px; }
+.date-time { flex-direction: column; gap: 0; }
+.date-time > * { width: 100%; }
 }
-
-.card{
-background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
-border:1px solid rgba(255,255,255,.10);
-border-radius:18px;
-padding:16px;
-box-shadow: 0 10px 24px rgba(0,0,0,.35);
-}
-
-.formRow{margin:14px 0;}
-label{
-display:block;
-margin:0 0 6px;
-font-size:13px;
-color:var(--muted);
-}
-
-input, select{
-width:100%;
-box-sizing:border-box;
-border-radius:12px;
-border:1px solid rgba(255,255,255,.14);
-background:rgba(0,0,0,.22);
-color:var(--text);
-padding:10px 12px;
-font-size:14px;
-outline:none;
-}
-input:focus,select:focus{
-border-color:rgba(167,139,250,.65);
-box-shadow:0 0 0 4px rgba(124,58,237,.22);
-}
-
-.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
-.gridTime{display:grid;grid-template-columns:1fr 1fr 1.1fr;gap:10px;}
-
-.hint{font-size:12px;color:rgba(255,255,255,.65);line-height:1.3;margin-top:6px;}
-.btn{
-width:100%;
-margin-top:16px;
-background:linear-gradient(90deg, rgba(124,58,237,.95), rgba(167,139,250,.95));
-border:0;
-color:white;
-font-weight:700;
-padding:12px 14px;
-border-radius:14px;
-cursor:pointer;
-font-size:15px;
-box-shadow:0 12px 22px rgba(124,58,237,.25);
-}
-.btn:hover{filter:brightness(1.05);}
-.btn:active{transform:translateY(1px);}
-
-.status{
-margin-top:10px;
-font-size:13px;
-color:rgba(255,255,255,.75);
-min-height:18px;
-}
-.status.error{color:#fecaca;}
-.status.ok{color:#bbf7d0;}
-
-#chartCard{
-min-height:560px;
-display:flex;
-flex-direction:column;
-gap:10px;
-}
-
-#chart{
-width:100%;
-flex:1;
-border-radius:14px;
-background:rgba(0,0,0,.20);
-border:1px solid rgba(255,255,255,.10);
-overflow:hidden;
-position:relative;
-}
-
-#chart svg{
-width:100%;
-height:100%;
-display:block;
-}
-
-.small{
-font-size:12px;
-color:rgba(255,255,255,.68);
-}
-
-footer{
-margin-top:14px;
-font-size:12px;
-color:rgba(255,255,255,.55);
-}
-
-@media(max-width:980px){
-.wrap{grid-template-columns:1fr;}
-#chartCard{min-height:520px;}
-}
-
-/* RTL tweaks when Hebrew active */
-body[dir="rtl"] .wrap{direction:rtl;}
-body[dir="rtl"] label{text-align:right;}
-body[dir="rtl"] .hint{text-align:right;}
 </style>
 </head>
-
 <body>
-<div class="wrap">
-<header>
-<h1 data-en="Astrology Birth Chart Calculator" data-he="מחשבון מפה אסטרולוגית">Astrology Birth Chart Calculator</h1>
-<div class="langToggle" aria-label="Language">
-<button id="langEN" class="active" type="button">EN</button>
-<button id="langHE" type="button">עברית</button>
-</div>
-</header>
+<select id="languageSelector">
+<option value="en">English</option>
+<option value="he">עברית</option>
+</select>
 
-<div class="card">
+<h1 data-en="Astrology Birth Chart Calculator" data-he="מחשבון מפת לידה אסטרולוגית">Astrology Birth Chart Calculator</h1>
+
 <form id="birthForm">
-<div class="formRow">
 <label for="name" data-en="My name is:" data-he="השם שלי הוא:">My name is:</label>
-<input id="name" type="text" placeholder="Optional" />
-</div>
+<input type="text" id="name" data-en-placeholder="Optional" data-he-placeholder="אופציונלי" autocomplete="name" />
 
-<div class="formRow">
 <label data-en="My date of birth is:" data-he="תאריך הלידה שלי הוא:">My date of birth is:</label>
-<div class="grid3">
-<select id="day"></select>
-<select id="month"></select>
-<input id="year" type="number" min="1800" max="2200" value="1993" />
-</div>
+<div class="date-time">
+<select id="month" required autocomplete="bday-month">
+<option value="">MM</option>
+<option value="1">01</option><option value="2">02</option><option value="3">03</option>
+<option value="4">04</option><option value="5">05</option><option value="6">06</option>
+<option value="7">07</option><option value="8">08</option><option value="9">09</option>
+<option value="10">10</option><option value="11">11</option><option value="12">12</option>
+</select>
+<select id="day" required autocomplete="bday-day">
+<option value="">DD</option>
+</select>
+<input type="number" id="year" data-en-placeholder="YYYY" data-he-placeholder="שנה"
+min="1900" max="2100" required autocomplete="bday-year" />
 </div>
 
-<div class="formRow">
 <label data-en="Birth Time:" data-he="שעת לידה:">Birth Time:</label>
-<div class="gridTime">
-<select id="hour"></select>
-<select id="minute"></select>
-<select id="ampm">
-<option value="AM">AM</option>
-<option value="PM">PM</option>
+<div class="date-time">
+<select id="hour" required>
+<option value="">hh</option>
+<option value="1">1</option><option value="2">2</option><option value="3">3</option>
+<option value="4">4</option><option value="5">5</option><option value="6">6</option>
+<option value="7">7</option><option value="8">8</option><option value="9">9</option>
+<option value="10">10</option><option value="11">11</option><option value="12">12</option>
+</select>
+<select id="minute" required>
+<option value="">mm</option>
+</select>
+<select id="ampm" required>
+<option value="AM" data-en="AM" data-he="בוקר">AM</option>
+<option value="PM" data-en="PM" data-he="ערב">PM</option>
 </select>
 </div>
-</div>
 
-<div class="formRow">
-<label for="place" data-en="I was born in: (City, state, country)" data-he="נולדתי ב: (עיר, מדינה, ארץ)">I was born in: (City, state, country)</label>
-<input id="place" type="text" placeholder="e.g., Donetsk, Ukraine" autocomplete="off" />
-<div class="hint" data-en="Pick a suggestion from the dropdown so we can get exact coordinates."
+<label data-en="I was born in: (City, state, country)" data-he="נולדתי ב: (עיר, מדינה, ארץ)">
+I was born in: (City, state, country)
+</label>
+
+<div id="placeAutocompleteContainer"></div>
+<div class="hint" id="locHint"
+data-en="Pick a suggestion from the dropdown so we can get exact coordinates."
 data-he="בחר/י הצעה מהרשימה כדי שנוכל לקבל קואורדינטות מדויקות.">
 Pick a suggestion from the dropdown so we can get exact coordinates.
 </div>
-<div id="placePicked" class="small"></div>
+<small id="placeDebug" style="display:block;margin:-8px 0 16px;color:#aaa;"></small>
+
+<input type="hidden" id="lat" />
+<input type="hidden" id="lon" />
+<input type="hidden" id="tz" />
+
+<div class="hint" id="errBox" style="display:none;"></div>
+
+<button type="submit" data-en="Create Chart" data-he="צור מפה">Create Chart</button>
+</form>
+
+<div id="chart">
+<svg id="chartSvg" width="600" height="600"></svg>
 </div>
 
-<button class="btn" type="submit" data-en="Create Chart" data-he="צור מפה">Create Chart</button>
-<div id="status" class="status"></div>
-</form>
+<div id="positions">
+<h2 data-en="Planetary Positions" data-he="מיקומי כוכבים">Planetary Positions</h2>
+<ul id="posList"></ul>
+</div>
+
+<div id="aspects">
+<h2 data-en="Aspects" data-he="אספקטים">Aspects</h2>
+<ul id="aspList"></ul>
+</div>
+
+<div id="lots">
+<h2 data-en="Arabic Lots (Medieval Techniques)" data-he="חלקים ערביים (טכניקות ימי הביניים)">Arabic Lots (Medieval Techniques)</h2>
+<ul id="lotList"></ul>
+</div>
+
+<div id="interpretations">
+<h2 data-en="Interpretations (From Literature)" data-he="פרשנויות (מהספרות)">Interpretations (From Literature)</h2>
+<p id="interpText"></p>
+</div>
 
 <footer>
 <a href="privacy.html" data-en="Privacy Policy" data-he="מדיניות פרטיות">Privacy Policy</a>
@@ -255,7 +183,7 @@ Pick a suggestion from the dropdown so we can get exact coordinates.
 <div id="consentBanner">
 <p data-en="We use your birth data only for calculating your chart (no storage or sharing). By using this site, you consent to our Privacy Policy."
 data-he="אנו משתמשים בנתוני הלידה שלך רק לחישוב המפה שלך (ללא אחסון או שיתוף). בשימוש באתר זה, אתה מסכים למדיניות הפרטיות שלנו.">
-We use your birth data only for calculating your chart (no storage or sharing). By using this site, you consent to our Privacy Policy.
+We use your birth data only for calculating your chart (no storage or sharing). By using this site, you consent to our
 <a href="privacy.html" style="color:#ffd700">Privacy Policy</a>.
 </p>
 <button id="acceptBtn" data-en="Accept" data-he="אשר">Accept</button>
@@ -264,79 +192,195 @@ We use your birth data only for calculating your chart (no storage or sharing). 
 
 <!-- libs -->
 <script src="https://d3js.org/d3.v7.min.js"></script>
-
-<!-- Astronomy Engine as ESM -->
 <script type="module">
-import * as Astronomy from "https://cdn.jsdelivr.net/npm/astronomy-engine@2.1.3/+esm";
+import * as Astronomy from "https://cdn.jsdelivr.net/npm/astronomy-engine@2.1.19/+esm";
 window.Astronomy = Astronomy;
 </script>
-</div>
-
-<div class="card" id="chartCard">
-<div class="small" id="chartTitle"></div>
-<div id="chart"></div>
-<div class="small" id="positionsText"></div>
-</div>
-</div>
 
 <script>
-/****************************************
+/**********************
 * Helpers & Globals
-****************************************/
-const statusEl = document.getElementById('status');
-const chartEl = document.getElementById('chart');
-const chartTitleEl = document.getElementById('chartTitle');
-const positionsTextEl = document.getElementById('positionsText');
+**********************/
+const signsEn = ['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'];
+const signsHe = ['טלה','שור','תאומים','סרטן','אריה','בתולה','מאזניים','עקרב','קשת','גדי','דלי','דגים'];
 
-let pickedLat = null;
-let pickedLon = null;
-let pickedLabel = null;
-
-function setStatus(msg, type=""){
-statusEl.textContent = msg || "";
-statusEl.className = "status " + (type || "");
-}
-
-function clamp(n,min,max){ return Math.max(min, Math.min(max,n)); }
-
-function norm360(deg){
-deg = deg % 360;
-return deg < 0 ? deg + 360 : deg;
-}
-
-function degToSign(deg){
-const signs = ["Aries","Taurus","Gemini","Cancer","Leo","Virgo","Libra","Scorpio","Sagittarius","Capricorn","Aquarius","Pisces"];
-const d = norm360(deg);
-const si = Math.floor(d / 30);
-const within = d - si*30;
-const dd = Math.floor(within);
-const mm = Math.round((within - dd)*60);
-return { sign: signs[si], deg: dd, min: mm };
-}
-
-function signToHeb(sign){
-const map = {
-Aries:"טלה", Taurus:"שור", Gemini:"תאומים", Cancer:"סרטן", Leo:"אריה", Virgo:"בתולה",
-Libra:"מאזניים", Scorpio:"עקרב", Sagittarius:"קשת", Capricorn:"גדי", Aquarius:"דלי", Pisces:"דגים"
+const planetNames = {
+en: {Sun:'Sun', Moon:'Moon', Mercury:'Mercury', Venus:'Venus', Mars:'Mars', Jupiter:'Jupiter', Saturn:'Saturn', Uranus:'Uranus', Neptune:'Neptune', Pluto:'Pluto', Node:'North Node', Asc:'Ascendant', MC:'MC'},
+he: {Sun:'שמש', Moon:'ירח', Mercury:'כוכב חמה', Venus:'נוגה', Mars:'מאדים', Jupiter:'צדק', Saturn:'שבתאי', Uranus:'אורנוס', Neptune:'נפטון', Pluto:'פלוטו', Node:'צומת צפוני', Asc:'אסנדנט', MC:'MC'}
 };
-return map[sign] || sign;
+
+const aspectTypes = {
+0: { en:'Conjunction', he:'חיבור', orb: 8 },
+60: { en:'Sextile', he:'משושה', orb: 5 },
+90: { en:'Square', he:'ריבוע', orb: 6 },
+120: { en:'Trine', he:'משולש', orb: 6 },
+180: { en:'Opposition', he:'ניגוד', orb: 8 }
+};
+
+const signRulers = {
+Aries:'Mars', Taurus:'Venus', Gemini:'Mercury', Cancer:'Moon', Leo:'Sun', Virgo:'Mercury',
+Libra:'Venus', Scorpio:'Mars', Sagittarius:'Jupiter', Capricorn:'Saturn', Aquarius:'Saturn', Pisces:'Jupiter'
+};
+
+function norm360(x){ x%=360; if(x<0) x+=360; return x; }
+function degToRad(d){ return d*Math.PI/180; }
+function radToDeg(r){ return r*180/Math.PI; }
+function pad2(n){ return String(n).padStart(2,'0'); }
+
+function formatLon(lon, lang){
+const sIndex = Math.floor(norm360(lon)/30);
+const degInSign = norm360(lon) - sIndex*30;
+const deg = Math.floor(degInSign);
+const min = Math.floor((degInSign - deg)*60);
+const sign = (lang==='he'?signsHe:signsEn)[sIndex];
+return `${deg}°${pad2(min)} ${sign}`;
 }
 
-function fmtPos(label, lonDeg, lang="en"){
-const p = degToSign(lonDeg);
-if(lang==="he"){
-return `${label}: ${p.deg}°${String(p.min).padStart(2,"0")} ${signToHeb(p.sign)}`;
+function setError(msg){
+const box = document.getElementById('errBox');
+if(!msg){
+box.style.display='none';
+box.classList.remove('error');
+box.textContent='';
+return;
 }
-return `${label}: ${p.deg}°${String(p.min).padStart(2,"0")} ${p.sign}`;
+box.style.display='block';
+box.classList.add('error');
+box.textContent = msg;
 }
 
-/****************************************
-* Julian Day + Node helpers
-****************************************/
-function jdFromAstroTime(time){
-// Astronomy Engine Time has .ut = days since J2000
-if (time && typeof time.ut === 'number') return 2451545.0 + time.ut;
-if (time instanceof Date) return (time.getTime()/86400000) + 2440587.5;
+let lastChartState = null;
+
+/**********************
+* Language switching
+**********************/
+let currentLang = localStorage.getItem('language') || (navigator.language.startsWith('he') ? 'he' : 'en');
+document.getElementById('languageSelector').value = currentLang;
+
+function switchLanguage(lang) {
+currentLang = lang;
+document.body.classList.toggle('rtl', lang === 'he');
+document.querySelectorAll('[data-en]').forEach(el => {
+el.innerHTML = el.getAttribute(`data-${lang}`) || el.getAttribute('data-en');
+});
+document.querySelectorAll('[data-en-placeholder]').forEach(el => {
+el.placeholder = el.getAttribute(`data-${lang}-placeholder`) || el.getAttribute('data-en-placeholder');
+});
+localStorage.setItem('language', lang);
+if (lastChartState) renderAll(lastChartState);
+}
+document.getElementById('languageSelector').addEventListener('change', (e) => switchLanguage(e.target.value));
+switchLanguage(currentLang);
+
+/**********************
+* Consent banner
+**********************/
+if (!localStorage.getItem('consentGiven')) {
+document.getElementById('birthForm').style.display = 'none';
+document.getElementById('consentBanner').style.display = 'block';
+} else {
+document.getElementById('consentBanner').style.display = 'none';
+}
+
+document.getElementById('acceptBtn').addEventListener('click', () => {
+localStorage.setItem('consentGiven', 'true');
+document.getElementById('consentBanner').style.display = 'none';
+document.getElementById('birthForm').style.display = 'block';
+});
+
+document.getElementById('declineBtn').addEventListener('click', () => {
+alert(currentLang === 'en'
+? 'You must accept the privacy policy to use this site.'
+: 'עליך לאשר את מדיניות הפרטיות כדי להשתמש באתר זה.');
+});
+
+/**********************
+* Populate day/minute
+**********************/
+const daySelect = document.getElementById('day');
+for (let i=1;i<=31;i++) daySelect.options.add(new Option(i<10?'0'+i:String(i), String(i)));
+const minuteSelect = document.getElementById('minute');
+for (let i=0;i<60;i++) minuteSelect.options.add(new Option(i<10?'0'+i:String(i), String(i)));
+
+/**********************
+* ✅ Places (NEW) — PlaceAutocompleteElement
+**********************/
+window.initPlaces = async function initPlaces() {
+try {
+if (!window.google || !google.maps || !google.maps.importLibrary) {
+throw new Error("Google Maps library not ready.");
+}
+
+const container = document.getElementById("placeAutocompleteContainer");
+const debugEl = document.getElementById("placeDebug");
+
+container.innerHTML = "";
+
+const placesLib = await google.maps.importLibrary("places");
+const PlaceAutocompleteElement = placesLib.PlaceAutocompleteElement;
+
+const placeAutocomplete = new PlaceAutocompleteElement();
+placeAutocomplete.style.width = "100%";
+placeAutocomplete.style.display = "block";
+placeAutocomplete.style.marginBottom = "16px";
+
+container.appendChild(placeAutocomplete);
+
+placeAutocomplete.addEventListener("gmp-select", async (ev) => {
+const prediction = ev.placePrediction;
+if (!prediction) return;
+
+const place = prediction.toPlace();
+await place.fetchFields({
+fields: ["formattedAddress", "location", "utcOffsetMinutes"]
+});
+
+if (!place.location) return;
+
+document.getElementById("lat").value = place.location.lat();
+document.getElementById("lon").value = place.location.lng();
+
+// NOTE: utcOffsetMinutes is “best effort”; true timezone rules need server-side timezone lookup.
+const offsetHours = (place.utcOffsetMinutes ?? 0) / 60;
+document.getElementById("tz").value = offsetHours;
+
+if (debugEl) debugEl.textContent = place.formattedAddress || "";
+setError(null);
+});
+
+} catch (err) {
+console.error("Places init failed:", err);
+setError(currentLang === 'en'
+? 'Google Places failed to load. Check API key, billing, and referrer restrictions.'
+: 'Google Places לא נטען. בדוק/י מפתח API, חיוב והגבלות דומיין.');
+}
+};
+
+/**********************
+* Core astronomy
+**********************/
+function assertAstronomyLoaded() {
+if (!window.Astronomy) {
+throw new Error(currentLang === 'en'
+? 'Astronomy Engine did not load (Astronomy is undefined).'
+: 'ספריית Astronomy Engine לא נטענה (Astronomy לא מוגדר).');
+}
+}
+
+function getPlanetLon(body, time) {
+const vec = Astronomy.GeoVector(body, time, false);
+const ecl = Astronomy.Ecliptic(vec);
+return norm360(ecl.elon);
+}
+
+/**
+* ✅ FIXED:
+* In astronomy-engine, time.ut and time.tt are ALREADY Julian Days (not days since J2000).
+*/
+function jdFromAstroTime(t){
+if (t && typeof t.ut === 'number' && isFinite(t.ut)) return t.ut; // JD(UT)
+if (t && typeof t.tt === 'number' && isFinite(t.tt)) return t.tt; // JD(TT)
+if (t instanceof Date) return (t.getTime()/86400000) + 2440587.5;
 throw new Error("Cannot compute JD from time object");
 }
 
@@ -350,293 +394,432 @@ let omega = 125.0445550
 return norm360(omega);
 }
 
-// Get North Node (ascending node) ecliptic longitude in degrees (tropical).
-// Astronomy Engine v2.x does not expose a direct MoonNode() API in the browser build,
-// so we use the robust fallback: mean ascending node longitude from Julian Day.
+/**
+* ✅ THIS IS WHAT YOUR CODE WAS MISSING:
+* getNodeLon(time) used later when building planet list.
+* Tries native API if present, otherwise uses mean-node approximation.
+*/
 function getNodeLon(time){
+assertAstronomyLoaded();
+
+// Some builds might expose node helpers; most don't.
+// We'll just use mean node always unless a function exists.
+if (Astronomy && typeof Astronomy.MoonNode === 'function') {
+try {
+return norm360(Astronomy.MoonNode(time));
+} catch (_) {}
+}
+
 const jd = jdFromAstroTime(time);
 return meanLunarNodeDegFromJD(jd);
 }
 
 function meanObliquityDeg(time) {
-// Mean obliquity of the ecliptic (ε0) in degrees (Meeus).
-const jd = jdFromAstroTime(time);
+const jd = jdFromAstroTime(time); // JD
 const T = (jd - 2451545.0) / 36525.0;
-
-const seconds =
-21.448
-- 46.8150 * T
-- 0.00059 * T * T
-+ 0.001813 * T * T * T;
-
-const eps = 23.0 + 26.0/60.0 + seconds/3600.0;
-return eps;
+const epsArcsec = 84381.448 - 46.8150*T - 0.00059*T*T + 0.001813*T*T*T;
+return epsArcsec/3600.0;
 }
 
-function localSiderealTimeDeg(time, lonDeg){
-// Astronomy.SiderealTime(time) returns sidereal hours at Greenwich
+function localSiderealTimeDeg(time, lonDegEast) {
 const gstHours = Astronomy.SiderealTime(time);
-const lst = norm360(gstHours*15 + lonDeg);
-return lst;
+const gstDeg = norm360(gstHours*15);
+return norm360(gstDeg + lonDegEast);
 }
 
-/****************************************
-* UI setup (date/time dropdowns)
-****************************************/
-(function initDropdowns(){
-const daySel = document.getElementById("day");
-const monthSel = document.getElementById("month");
-const hourSel = document.getElementById("hour");
-const minuteSel = document.getElementById("minute");
-
-for(let d=1; d<=31; d++){
-const o=document.createElement("option");
-o.value=d; o.textContent=String(d).padStart(2,"0");
-daySel.appendChild(o);
-}
-const months = ["01","02","03","04","05","06","07","08","09","10","11","12"];
-months.forEach((m,i)=>{
-const o=document.createElement("option");
-o.value=i+1; o.textContent=m;
-monthSel.appendChild(o);
-});
-
-for(let h=1; h<=12; h++){
-const o=document.createElement("option");
-o.value=h; o.textContent=String(h);
-hourSel.appendChild(o);
-}
-for(let m=0; m<60; m++){
-const o=document.createElement("option");
-o.value=m; o.textContent=String(m).padStart(2,"0");
-minuteSel.appendChild(o);
+function ascendantDeg(lstDeg, latDeg, epsDeg) {
+const theta = degToRad(lstDeg);
+const phi = degToRad(latDeg);
+const eps = degToRad(epsDeg);
+const y = Math.cos(eps)*Math.sin(theta) - Math.tan(phi)*Math.sin(eps);
+const x = Math.cos(theta);
+return norm360(radToDeg(Math.atan2(y, x)));
 }
 
-// Defaults for your natal data
-daySel.value = 8;
-monthSel.value = 3;
-document.getElementById("year").value = 1993;
-hourSel.value = 5;
-minuteSel.value = 0;
-document.getElementById("ampm").value = "AM";
-})();
-
-/****************************************
-* Language toggle
-****************************************/
-let currentLang = "en";
-const langEN = document.getElementById("langEN");
-const langHE = document.getElementById("langHE");
-
-function applyLang(lang){
-currentLang = lang;
-document.body.setAttribute("dir", lang==="he" ? "rtl" : "ltr");
-
-langEN.classList.toggle("active", lang==="en");
-langHE.classList.toggle("active", lang==="he");
-
-document.querySelectorAll("[data-en]").forEach(el=>{
-el.textContent = el.getAttribute(lang==="he" ? "data-he" : "data-en");
-});
-
-// Also update button labels
-document.querySelectorAll("button[data-en]").forEach(el=>{
-el.textContent = el.getAttribute(lang==="he" ? "data-he" : "data-en");
-});
+function midheavenDeg(lstDeg, epsDeg) {
+const theta = degToRad(lstDeg);
+const eps = degToRad(epsDeg);
+const y = Math.sin(theta)*Math.cos(eps);
+const x = Math.cos(theta);
+return norm360(radToDeg(Math.atan2(y, x)));
 }
 
-langEN.addEventListener("click", ()=>applyLang("en"));
-langHE.addEventListener("click", ()=>applyLang("he"));
-
-/****************************************
-* Google Places Autocomplete (optional)
-****************************************/
-let autocomplete = null;
-function initPlaces(){
-if(!window.google || !google.maps || !google.maps.places) return;
-
-const input = document.getElementById("place");
-autocomplete = new google.maps.places.Autocomplete(input, { types: ["(cities)"] });
-
-autocomplete.addListener("place_changed", ()=>{
-const p = autocomplete.getPlace();
-if(!p || !p.geometry) return;
-
-pickedLat = p.geometry.location.lat();
-pickedLon = p.geometry.location.lng();
-pickedLabel = p.formatted_address || p.name || input.value;
-
-document.getElementById("placePicked").textContent = pickedLabel;
-setStatus("", "");
-});
+function equalHousesFromAsc(asc) {
+const cusps = [];
+for (let i=0;i<12;i++) cusps.push(norm360(asc + i*30));
+return cusps;
 }
 
-/****************************************
-* Chart Computation
-****************************************/
-function assertAstronomyLoaded(){
-if(!window.Astronomy){
-throw new Error("Astronomy Engine did not load (Astronomy is undefined). Check that the CDN URL is reachable.");
-}
+function angleDiff(a,b){
+let d = Math.abs(norm360(a)-norm360(b));
+if (d>180) d = 360-d;
+return d;
 }
 
-function makeAstroTimeUTC(year,month,day,hour24,minute){
-// Construct a UTC Date then convert to Astronomy Time.
-const dateUTC = new Date(Date.UTC(year, month-1, day, hour24, minute, 0));
-return Astronomy.MakeTime(dateUTC);
+function computeAspects(planets) {
+const major = [0,60,90,120,180];
+const out = [];
+for (let i=0;i<planets.length;i++){
+for (let j=i+1;j<planets.length;j++){
+const A = planets[i], B = planets[j];
+const d = angleDiff(A.lon, B.lon);
+for (const asp of major) {
+const baseOrb = aspectTypes[asp].orb;
+const lumOrb = (A.key==='Sun'||A.key==='Moon'||B.key==='Sun'||B.key==='Moon') ? 1.5 : 0;
+const orb = baseOrb + lumOrb;
+const delta = Math.abs(d - asp);
+if (delta <= orb) {
+out.push({a:A.key, b:B.key, type:asp, orb:delta});
+break;
+}
+}
+}
+}
+return out.sort((x,y)=>x.orb-y.orb);
 }
 
-function computeChartFromForm(){
-assertAstronomyLoaded();
-
-const year = parseInt(document.getElementById("year").value, 10);
-const month = parseInt(document.getElementById("month").value, 10);
-const day = parseInt(document.getElementById("day").value, 10);
-
-const hour12 = parseInt(document.getElementById("hour").value, 10);
-const minute = parseInt(document.getElementById("minute").value, 10);
-const ampm = document.getElementById("ampm").value;
-
-let hour24 = hour12 % 12;
-if(ampm === "PM") hour24 += 12;
-
-if(pickedLat == null || pickedLon == null){
-throw new Error(currentLang==="he"
-? "בחר/י מקום מהרשימה כדי לקבל קואורדינטות מדויקות."
-: "Pick a place suggestion so we can get exact coordinates.");
+function signOfLongitude(lon) {
+return signsEn[Math.floor(norm360(lon)/30)];
 }
 
-const time = makeAstroTimeUTC(year,month,day,hour24,minute);
+function rulerLongitude(cuspLon, planetLonByKey) {
+const sign = signOfLongitude(cuspLon);
+const ruler = signRulers[sign];
+const lon = planetLonByKey[ruler];
+return (typeof lon === 'number') ? lon : 0;
+}
 
-// Planetary longitudes (geocentric apparent ecliptic of date, J2000? Astronomy-engine returns of-date)
-const bodies = [
-["Sun", "Sun"],
-["Moon", "Moon"],
-["Mercury","Mercury"],
-["Venus","Venus"],
-["Mars","Mars"],
-["Jupiter","Jupiter"],
-["Saturn","Saturn"],
-["Uranus","Uranus"],
-["Neptune","Neptune"],
-["Pluto","Pluto"],
+function houseOfLongitude(lon, houseCusps) {
+const a = houseCusps[0];
+const rel = norm360(lon - a);
+const idx = Math.floor(rel / 30);
+return idx + 1;
+}
+
+/**********************
+* Lots (your array)
+**********************/
+const lotsDefinitions = [
+{ nameEn: 'Puṇya (Fortune)', nameHe: 'חלק המזל (פורטונה)', meaningEn: 'Luck, prosperity, health and general well-being', meaningHe: 'מזל, שגשוג, בריאות ורווחה כללית', day: longs => longs.asc + longs.moon - longs.sun, night: longs => longs.asc + longs.sun - longs.moon },
+{ nameEn: 'Guru (Teacher)', nameHe: 'חלק המורה', meaningEn: 'Teacher or spiritual guide, mentors, gurus, wisdom path', meaningHe: 'מורה או מדריך רוחני, מנטורים, גורו, דרך חוכמה', day: longs => longs.asc + longs.jup - longs.sun, night: longs => longs.asc + longs.sun - longs.jup },
+{ nameEn: 'Jñāna/Vidyā (Knowledge)', nameHe: 'חלק הידע', meaningEn: 'Knowledge and learning, education, scholarship', meaningHe: 'ידע ולמידה, חינוך, מלגה', day: longs => longs.asc + longs.merc - longs.sun, night: longs => longs.asc + longs.sun - longs.merc },
+{ nameEn: 'Yaśas (Renown)', nameHe: 'חלק התהילה', meaningEn: 'Fame/Reputation, honor, glory and how one is known', meaningHe: 'תהילה/מוניטין, כבוד, תפארת ואיך אדם ידוע', day: longs => longs.asc + longs.jup - longs.punya, night: longs => longs.asc + longs.punya - longs.jup },
+{ nameEn: 'Mitra (Friends)', nameHe: 'חלק החברים', meaningEn: 'Friendship, allies, friends and social networks', meaningHe: 'ידידות, בעלי ברית, חברים ורשתות חברתיות', day: longs => longs.asc + longs.ven - longs.merc, night: longs => longs.asc + longs.merc - longs.ven },
+{ nameEn: 'Māhātmya (Greatness)', nameHe: 'חלק הגדולה', meaningEn: 'Greatness or magnanimity, prestige, nobility or grand achievements', meaningHe: 'גדולה או נדיבות, יוקרה, אצילות או הישגים גדולים', day: longs => longs.asc + longs.punya - longs.mars, night: longs => longs.asc + longs.mars - longs.punya },
+{ nameEn: 'Āśā (Hope)', nameHe: 'חלק התקווה', meaningEn: 'Hope and expectations; aspirations and optimism for the future', meaningHe: 'תקווה וציפיות; שאיפות ואופטימיות לעתיד', day: longs => longs.asc + longs.sat - longs.ven, night: longs => longs.asc + longs.ven - longs.sat },
+{ nameEn: 'Samarthatā (Ability)', nameHe: 'חלק היכולת', meaningEn: 'Ability/Capability, skill, talent and competence', meaningHe: 'יכולת/מסוגלות, מיומנות, כישרון וכשירות', day: longs => longs.asc + longs.mars - longs.merc, night: longs => longs.asc + longs.merc - longs.mars },
+{ nameEn: 'Bhrātṛ (Brothers)', nameHe: 'חלק האחים', meaningEn: 'Siblings (especially brothers), experiences due to brothers', meaningHe: 'אחים (במיוחד אחים), חוויות בשל אחים', day: longs => longs.asc + longs.jup - longs.sat, night: longs => longs.asc + longs.jup - longs.sat },
+{ nameEn: 'Gaurava (Honor)', nameHe: 'חלק הכבוד', meaningEn: 'Honor/Dignity, respect, social standing and recognition', meaningHe: 'כבוד/כבוד, כבוד, מעמד חברתי והכרה', day: longs => longs.asc + longs.sat - longs.sun, night: longs => longs.asc + longs.sun - longs.sat },
+{ nameEn: 'Rājya (Dominion)', nameHe: 'חלק הממלכה', meaningEn: 'Kingdom/Authority, power, career success, leadership', meaningHe: 'ממלכה/סמכות, כוח, הצלחה בקריירה, מנהיגות', day: longs => longs.asc + longs.sat - longs.sun, night: longs => longs.asc + longs.sun - longs.sat },
+{ nameEn: 'Pitṛ/Tāta (Father)', nameHe: 'חלק האב', meaningEn: 'Father, father’s well-being or influence, paternal lineage', meaningHe: 'אב, רווחת האב או השפעתו, שושלת אבהית', day: longs => longs.asc + longs.sat - longs.sun, night: longs => longs.asc + longs.sun - longs.sat },
+{ nameEn: 'Mātṛ (Mother)', nameHe: 'חלק האם', meaningEn: 'Mother, mother’s influence, upbringing, maternal family', meaningHe: 'אם, השפעת האם, גידול, משפחה אמהית', day: longs => longs.asc + longs.moon - longs.ven, night: longs => longs.asc + longs.ven - longs.moon },
+{ nameEn: 'Suta (Children)', nameHe: 'חלק הילדים', meaningEn: 'Children, offspring, fertility and relationship with children', meaningHe: 'ילדים, צאצאים, פוריות וקשר עם ילדים', day: longs => longs.asc + longs.jup - longs.sat, night: longs => longs.asc + longs.jup - longs.sat },
+{ nameEn: 'Jīvita (Life)', nameHe: 'חלק החיים', meaningEn: 'Life, vitality, life force, longevity and general life path themes', meaningHe: 'חיים, חיוניות, כוח חיים, אריכות ימים ונושאים כלליים של דרך חיים', day: longs => longs.asc + longs.sat - longs.jup, night: longs => longs.asc + longs.jup - longs.sat },
+{ nameEn: 'Ambu/Jala (Water)', nameHe: 'חלק המים', meaningEn: 'Water, matters related to water (crossing seas, voyages, emotions)', meaningHe: 'מים, עניינים הקשורים למים (חציית ימים, מסעות, רגשות)', day: longs => longs.asc + 105 - longs.sat, night: longs => longs.asc + longs.sat - 105 },
+{ nameEn: 'Karman (Work)', nameHe: 'חלק העבודה', meaningEn: 'Work (Karma), work, deeds, career labor and toil', meaningHe: 'עבודה (קארמה), עבודה, מעשים, עבודת קריירה ועמל', day: longs => longs.asc + longs.mars - longs.merc, night: longs => longs.asc + longs.merc - longs.mars },
+{ nameEn: 'Roga/Māndya (Illness)', nameHe: 'חלק המחלה', meaningEn: 'Illness, disease, health issues and ailments', meaningHe: 'מחלה, מחלה, בעיות בריאות ומחלות', day: longs => longs.asc + longs.asc - longs.moon, night: longs => longs.asc + longs.moon - longs.asc },
+{ nameEn: 'Manmatha (Desire)', nameHe: 'חלק התשוקה', meaningEn: 'Desire (Manmatha god of love), passion, sexual desire, attraction', meaningHe: 'תשוקה (אלוהי האהבה מנמתה), תשוקה, תשוקה מינית, משיכה', day: longs => longs.asc + longs.ven - longs.sat, night: longs => longs.asc + longs.ven - longs.sat },
+{ nameEn: 'Kali/Jhaḳaṭaka (Strife)', nameHe: 'חלק המריבה', meaningEn: 'Strife/Quarrel, conflicts, disputes and strife', meaningHe: 'מריבה/ריב, סכסוכים, מחלוקות ומריבה', day: longs => longs.asc + longs.jup - longs.mars, night: longs => longs.asc + longs.mars - longs.jup },
+{ nameEn: 'Kṣama (Forbearance)', nameHe: 'חלק הסבלנות', meaningEn: 'Forbearance (Patience/Forgiveness), capacity to endure, forgive', meaningHe: 'סבלנות (סבלנות/סליחה), יכולת לסבול, לסלוח', day: longs => longs.asc + longs.sat - longs.punya, night: longs => longs.asc + longs.punya - longs.sat },
+{ nameEn: 'Śāstra (Instruction)', nameHe: 'חלק ההוראה', meaningEn: 'Instruction (or Scriptures), learning, knowledge of sciences or scriptures', meaningHe: 'הוראה (או כתבי קודש), למידה, ידע במדעים או כתבי קודש', day: longs => longs.asc + longs.jup - longs.sat, night: longs => longs.asc + longs.sat - longs.jup },
+{ nameEn: 'Sa-bandhu (Kinsmen)', nameHe: 'חלק הקרובים', meaningEn: 'Kinsfolk/Relatives, extended family, cousins, allies by blood', meaningHe: 'קרובי משפחה/קרובים, משפחה מורחבת, בני דודים, בעלי ברית בדם', day: longs => longs.asc + longs.merc - longs.moon, night: longs => longs.asc + longs.moon - longs.merc },
+{ nameEn: 'Bandaka/Banda (Serfs)', nameHe: 'חלק המשרתים', meaningEn: 'Servants (or subordinates), servants, employees', meaningHe: 'משרתים (או כפופים), משרתים, עובדים', day: longs => longs.asc + longs.moon - longs.merc, night: longs => longs.asc + longs.moon - longs.merc },
+{ nameEn: 'Mṛtyu (Death)', nameHe: 'חלק המוות', meaningEn: 'Death, matters of death, mortality and dangerous circumstances', meaningHe: 'מוות, ענייני מוות, תמותה ומצבים מסוכנים', day: longs => longs.asc + longs.house8 - longs.sat, night: longs => longs.asc + longs.sat - longs.house8 },
+{ nameEn: 'Deśāntara (Foreign Countries)', nameHe: 'חלק ארצות זרות', meaningEn: 'Foreign Travel/Abroad, journeys to distant lands, foreign residence', meaningHe: 'נסיעות זרות/חו"ל, מסעות לארצות רחוקות, מגורים זרים', day: longs => longs.asc + longs.house9 - longs.lord9, night: longs => longs.asc + longs.house9 - longs.lord9 },
+{ nameEn: 'Dhana/Artha (Wealth)', nameHe: 'חלק העושר', meaningEn: 'Wealth, finance, money, possessions and material gains', meaningHe: 'עושר, כספים, כסף, רכוש ורווחים חומריים', day: longs => longs.asc + longs.house2 - longs.lord2, night: longs => longs.asc + longs.house2 - longs.lord2 },
+{ nameEn: 'Anyadāra (Others’ Wives)', nameHe: 'חלק נשות אחרים', meaningEn: 'Others’ Spouses, interactions with other people’s partners', meaningHe: 'בני זוג של אחרים, אינטראקציות עם בני זוג של אחרים', day: longs => longs.asc + longs.ven - longs.sun, night: longs => longs.asc + longs.ven - longs.sun },
+{ nameEn: 'Anyakarman (Others’ Work)', nameHe: 'חלק עבודת אחרים', meaningEn: 'Others’ Work/Business, involved in another person’s work', meaningHe: 'עבודה/עסקים של אחרים, מעורבות בעבודה של אדם אחר', day: longs => longs.asc + longs.mars - longs.merc, night: longs => longs.asc + longs.merc - longs.mars },
+{ nameEn: 'Vaṇij (Merchants)', nameHe: 'חלק הסוחרים', meaningEn: 'Merchants/Trade, commerce, business dealings, trade profits', meaningHe: 'סוחרים/מסחר, מסחר, עסקאות עסקיות, רווחי מסחר', day: longs => longs.asc + longs.merc - longs.moon, night: longs => longs.asc + longs.moon - longs.merc },
+{ nameEn: 'Kāryasiddhi (Success)', nameHe: 'חלק ההצלחה', meaningEn: 'Success in Undertakings, outcome of endeavors', meaningHe: 'הצלחה במפעלים, תוצאה של מאמצים', day: longs => longs.asc + longs.jup - longs.sat, night: longs => longs.asc + longs.jup - longs.sat },
+{ nameEn: 'Udvāha/Vivāha (Marriage)', nameHe: 'חלק הנישואין', meaningEn: 'Marriage, one’s spouse and marital happiness', meaningHe: 'נישואין, בן זוגו של האדם ואושר נישואין', day: longs => longs.asc + longs.ven - longs.sat, night: longs => longs.asc + longs.ven - longs.sat },
+{ nameEn: 'Sūti/Prasūti (Birth)', nameHe: 'חלק הלידה', meaningEn: 'Childbirth/Birth, matters around pregnancy, giving birth', meaningHe: 'לידה/לידה, עניינים סביב הריון, ילודה', day: longs => longs.asc + longs.jup - longs.moon, night: longs => longs.asc + longs.jup - longs.moon },
+{ nameEn: 'Santāpa (Affliction)', nameHe: 'חלק הסבל', meaningEn: 'Suffering/Grief, sorrow, mental distress and afflictions', meaningHe: 'סבל/צער, צער, מצוקה נפשית ומצוקות', day: longs => longs.asc + longs.sat - longs.moon, night: longs => longs.asc + longs.moon - longs.sat },
+{ nameEn: 'Śraddhā (Faith)', nameHe: 'חלק האמונה', meaningEn: 'Faith/Belief, trust, religious faith, sincerity and convictions', meaningHe: 'אמונה/אמונה, אמון, אמונה דתית, כנות והרשעות', day: longs => longs.asc + longs.jup - longs.moon, night: longs => longs.asc + longs.moon - longs.jup },
+{ nameEn: 'Prīti (Love)', nameHe: 'חלק האהבה', meaningEn: 'Love and Affection, romantic love, devotion, attachments', meaningHe: 'אהבה וחיבה, אהבה רומנטית, מסירות, קשרים', day: longs => longs.asc + longs.ven - longs.moon, night: longs => longs.asc + longs.moon - longs.ven },
+{ nameEn: 'Bala (Force)', nameHe: 'חלק הכוח', meaningEn: 'Force/Strength, physical strength, courage, military force', meaningHe: 'כוח/חוזק, כוח פיזי, אומץ, כוח צבאי', day: longs => longs.asc + longs.mars - longs.sat, night: longs => longs.asc + longs.sat - longs.mars },
+{ nameEn: 'Tanu/Deha (Body)', nameHe: 'חלק הגוף', meaningEn: 'Body/Health, condition of body, physical constitution', meaningHe: 'גוף/בריאות, מצב הגוף, מבנה גופני', day: longs => longs.asc + longs.asc - longs.moon, night: longs => longs.asc + longs.moon - longs.asc },
+{ nameEn: 'Jāḍya (Dullness)', nameHe: 'חלק העצלות', meaningEn: 'Stupidity/Inertia, ignorance, dull-wittedness, lethargy', meaningHe: 'טיפשות/אינרציה, בורות, קהות חושים, עייפות', day: longs => longs.asc + longs.sat - longs.merc, night: longs => longs.asc + longs.merc - longs.sat },
+{ nameEn: 'Vyāpāra (Occupation)', nameHe: 'חלק העיסוק', meaningEn: 'Occupation/Trade, profession or business dealings', meaningHe: 'עיסוק/מסחר, מקצוע או עסקאות עסקיות', day: longs => longs.asc + longs.mars - longs.merc, night: longs => longs.asc + longs.merc - longs.mars },
+{ nameEn: 'Pānīya-patana (Falling Into Water)', nameHe: 'חלק נפילה למים', meaningEn: 'Falling in Water, risk of drowning or water accidents', meaningHe: 'נפילה למים, סיכון טביעה או תאונות מים', day: longs => longs.asc + 105 - longs.sat, night: longs => longs.asc + longs.sat - 105 },
+{ nameEn: 'Ripu (Enemies)', nameHe: 'חלק האויבים', meaningEn: 'Enemies, open enemies, opponents, harm from them', meaningHe: 'אויבים, אויבים גלויים, יריבים, נזק מהם', day: longs => longs.asc + longs.mars - longs.sat, night: longs => longs.asc + longs.sat - longs.mars },
+{ nameEn: 'Śaurya (Valour)', nameHe: 'חלק האומץ', meaningEn: 'Valor/Courage, bravery, heroism, success in combat', meaningHe: 'אומץ/אומץ, גבורה, גבורה, הצלחה בקרב', day: longs => longs.asc + longs.mars - longs.jup, night: longs => longs.asc + longs.jup - longs.mars },
+{ nameEn: 'Upāya (Means)', nameHe: 'חלק האמצעים', meaningEn: 'Means/Strategy, resources, tactics to achieve goals', meaningHe: 'אמצעים/אסטרטגיה, משאבים, טקטיקות להשגת יעדים', day: longs => longs.asc + longs.jup - longs.sat, night: longs => longs.asc + longs.sat - longs.jup },
+{ nameEn: 'Daridra (Poverty)', nameHe: 'חלק העוני', meaningEn: 'Poverty, destitution, losses, financial hardship', meaningHe: 'עוני, עוני, הפסדים, קושי כלכלי', day: longs => longs.asc + longs.punya - longs.merc, night: longs => longs.asc + longs.merc - longs.punya },
+{ nameEn: 'Gurutā (Dignity)', nameHe: 'חלק הכבוד', meaningEn: 'Dignity/Gravity, authority, seriousness, personal dignity', meaningHe: 'כבוד/כבידה, סמכות, רצינות, כבוד אישי', day: longs => longs.asc + longs.sat - longs.jup, night: longs => longs.asc + longs.jup - longs.sat },
+{ nameEn: 'Jalapatha/Ambupatha (Travel by Water)', nameHe: 'חלק מסע במים', meaningEn: 'Journeys by Water, voyages over sea or rivers', meaningHe: 'מסעות במים, הפלגות על ים או נהרות', day: longs => longs.asc + 105 - longs.sat, night: longs => longs.asc + longs.sat - 105 },
+{ nameEn: 'Bandhana (Imprisonment)', nameHe: 'חלק הכלא', meaningEn: 'Captivity/Imprisonment, incarceration, restrictions', meaningHe: 'שביה/כלא, מאסר, הגבלות', day: longs => longs.asc + longs.punya - longs.sat, night: longs => longs.asc + longs.sat - longs.punya },
+{ nameEn: 'Duhitṛ/Kanyā (Daughters)', nameHe: 'חלק הבנות', meaningEn: 'Daughters, matters related to daughter(s) or young girls', meaningHe: 'בנות, עניינים הקשורים לבת(ות) או נערות צעירות', day: longs => longs.asc + longs.ven - longs.moon, night: longs => longs.asc + longs.moon - longs.ven },
+{ nameEn: 'Aśva (Horses)', nameHe: 'חלק הסוסים', meaningEn: 'Horses, matters concerning horses, vehicles or transport', meaningHe: 'סוסים, עניינים הנוגעים לסוסים, רכבים או תחבורה', day: longs => longs.asc + longs.mars - longs.moon, night: longs => longs.asc + longs.moon - longs.mars }
 ];
 
-const positions = [];
+/**********************
+* Drawing chart
+**********************/
+function drawChartSvg({svgId, planets, asc, mc, houseCusps}) {
+const svg = d3.select('#'+svgId);
+svg.selectAll('*').remove();
 
-for(const [label, bodyName] of bodies){
-const vec = Astronomy.GeoVector(bodyName, time, true);
-const ecl = Astronomy.Ecliptic(vec);
-positions.push({ label, lon: norm360(ecl.elon) });
+const W = +svg.attr('width');
+const H = +svg.attr('height');
+const cx = W/2, cy = H/2;
+const R = Math.min(W,H)*0.45;
+const ringOuter = R;
+const ringInner = R*0.78;
+const planetRing = R*0.62;
+
+function lonToAngleRad(lon){
+return degToRad(90 - lon);
 }
 
-// North Node (mean) in tropical ecliptic longitude
-const nodeLon = getNodeLon(time);
-positions.push({ label: currentLang==="he" ? "צומת צפוני" : "North Node", lon: nodeLon });
+svg.append('circle').attr('cx',cx).attr('cy',cy).attr('r',ringOuter)
+.attr('fill','rgba(0,0,0,0.25)').attr('stroke','#ffd700').attr('stroke-width',2);
+svg.append('circle').attr('cx',cx).attr('cy',cy).attr('r',ringInner)
+.attr('fill','none').attr('stroke','rgba(255,215,0,0.35)').attr('stroke-width',1.5);
+svg.append('circle').attr('cx',cx).attr('cy',cy).attr('r',planetRing)
+.attr('fill','none').attr('stroke','rgba(173,216,230,0.35)').attr('stroke-width',1);
 
-// (Optional) You can add South Node if you want:
-// positions.push({ label: currentLang==="he" ? "צומת דרומי" : "South Node", lon: norm360(nodeLon + 180) });
+for (let i=0;i<12;i++){
+const lon = i*30;
+const a = lonToAngleRad(lon);
+const x1 = cx + ringInner*Math.cos(a);
+const y1 = cy - ringInner*Math.sin(a);
+const x2 = cx + ringOuter*Math.cos(a);
+const y2 = cy - ringOuter*Math.sin(a);
+svg.append('line').attr('x1',x1).attr('y1',y1).attr('x2',x2).attr('y2',y2)
+.attr('stroke','rgba(255,215,0,0.35)').attr('stroke-width',1);
 
-// Simple text output
-const name = (document.getElementById("name").value || "").trim();
-const title = name ? (currentLang==="he" ? `מפה עבור ${name}` : `Chart for ${name}`) : (currentLang==="he" ? "המפה שלך" : "Your chart");
-chartTitleEl.textContent = title;
+const midLon = lon + 15;
+const am = lonToAngleRad(midLon);
+const tx = cx + (ringOuter+14)*Math.cos(am);
+const ty = cy - (ringOuter+14)*Math.sin(am);
 
-const lines = positions.map(p => fmtPos(p.label, p.lon, currentLang));
-positionsTextEl.textContent = lines.join(" • ");
-
-// Draw a simple wheel
-drawWheel(positions);
-
-return positions;
+const signLabel = (currentLang==='he'?signsHe:signsEn)[i];
+svg.append('text')
+.attr('x',tx).attr('y',ty)
+.attr('fill','#ffd700')
+.attr('font-size','10px')
+.attr('text-anchor','middle')
+.attr('dominant-baseline','middle')
+.text(signLabel);
 }
 
-/****************************************
-* Simple D3 Chart Rendering
-****************************************/
-function drawWheel(positions){
-chartEl.innerHTML = "";
-const w = chartEl.clientWidth;
-const h = Math.max(520, chartEl.clientHeight || 520);
-const size = Math.min(w, h);
-const r = size/2 - 20;
+for (let i=0;i<12;i++){
+const lon = houseCusps[i];
+const a = lonToAngleRad(lon);
+const x2 = cx + ringInner*Math.cos(a);
+const y2 = cy - ringInner*Math.sin(a);
 
-const svg = d3.select(chartEl)
-.append("svg")
-.attr("viewBox", `0 0 ${size} ${size}`);
+svg.append('line')
+.attr('x1',cx).attr('y1',cy).attr('x2',x2).attr('y2',y2)
+.attr('stroke','rgba(173,216,230,0.35)')
+.attr('stroke-width',1);
 
-const g = svg.append("g")
-.attr("transform", `translate(${size/2},${size/2})`);
-
-// outer ring
-g.append("circle")
-.attr("r", r)
-.attr("fill", "rgba(0,0,0,0.15)")
-.attr("stroke", "rgba(255,255,255,0.18)")
-.attr("stroke-width", 2);
-
-// zodiac lines every 30°
-for(let i=0;i<12;i++){
-const ang = (i*30 - 90) * Math.PI/180;
-g.append("line")
-.attr("x1", Math.cos(ang)*(r-5))
-.attr("y1", Math.sin(ang)*(r-5))
-.attr("x2", Math.cos(ang)*(r-70))
-.attr("y2", Math.sin(ang)*(r-70))
-.attr("stroke", "rgba(255,255,255,0.12)")
-.attr("stroke-width", 2);
+const mid = norm360(houseCusps[i] + 15);
+const am = lonToAngleRad(mid);
+const tx = cx + (ringInner*0.90)*Math.cos(am);
+const ty = cy - (ringInner*0.90)*Math.sin(am);
+svg.append('text')
+.attr('x',tx).attr('y',ty)
+.attr('fill','rgba(173,216,230,0.9)')
+.attr('font-size','10px')
+.attr('text-anchor','middle')
+.attr('dominant-baseline','middle')
+.text(String(i+1));
 }
 
-// points
-positions.forEach((p, idx)=>{
-const ang = (p.lon - 90) * Math.PI/180;
-const pr = r-30;
-const x = Math.cos(ang)*pr;
-const y = Math.sin(ang)*pr;
+function marker(lon, label){
+const a = lonToAngleRad(lon);
+const x = cx + ringInner*Math.cos(a);
+const y = cy - ringInner*Math.sin(a);
+svg.append('circle').attr('cx',x).attr('cy',y).attr('r',4).attr('fill','#ffd700');
+svg.append('text').attr('x',x).attr('y',y-10).attr('fill','#ffd700').attr('font-size','10px')
+.attr('text-anchor','middle').text(label);
+}
+marker(asc, planetNames[currentLang].Asc);
+marker(mc, planetNames[currentLang].MC);
 
-g.append("circle")
-.attr("cx", x)
-.attr("cy", y)
-.attr("r", 6)
-.attr("fill", idx===positions.length-1 ? "rgba(234,179,8,0.95)" : "rgba(167,139,250,0.95)")
-.attr("stroke", "rgba(0,0,0,0.45)")
-.attr("stroke-width", 1.5);
-
-g.append("text")
-.attr("x", x)
-.attr("y", y - 10)
-.attr("text-anchor", "middle")
-.attr("font-size", 11)
-.attr("fill", "rgba(255,255,255,0.85)")
-.text(p.label);
+planets.forEach(p=>{
+const a = lonToAngleRad(p.lon);
+const x = cx + planetRing*Math.cos(a);
+const y = cy - planetRing*Math.sin(a);
+svg.append('circle').attr('cx',x).attr('cy',y).attr('r',4).attr('fill','#add8e6');
+svg.append('text')
+.attr('x',x).attr('y',y-10)
+.attr('fill','#add8e6')
+.attr('font-size','10px')
+.attr('text-anchor','middle')
+.text(planetNames[currentLang][p.key] || p.key);
 });
 }
 
-/****************************************
-* Form submit
-****************************************/
-document.getElementById("birthForm").addEventListener("submit", (e)=>{
+function renderAll(state) {
+const posList = document.getElementById('posList');
+posList.innerHTML = '';
+state.planets.forEach(p=>{
+const li = document.createElement('li');
+li.textContent = `${planetNames[currentLang][p.key] || p.key}: ${formatLon(p.lon, currentLang)}`;
+posList.appendChild(li);
+});
+
+const aspList = document.getElementById('aspList');
+aspList.innerHTML = '';
+state.aspects.forEach(a=>{
+const li = document.createElement('li');
+const an = planetNames[currentLang][a.a] || a.a;
+const bn = planetNames[currentLang][a.b] || a.b;
+const aspName = aspectTypes[a.type][currentLang];
+li.textContent = `${an} ${aspName} ${bn} (orb ${a.orb.toFixed(1)}°)`;
+aspList.appendChild(li);
+});
+if (!state.aspects.length) {
+const li = document.createElement('li');
+li.textContent = currentLang==='en' ? 'No major aspects within orb.' : 'אין אספקטים עיקריים בתוך אורב.';
+aspList.appendChild(li);
+}
+
+const lotList = document.getElementById('lotList');
+lotList.innerHTML = '';
+state.lots.forEach(L=>{
+const li = document.createElement('li');
+const name = currentLang==='en' ? L.nameEn : L.nameHe;
+const meaning = currentLang==='en' ? L.meaningEn : L.meaningHe;
+li.textContent = `${name}: ${formatLon(L.lon, currentLang)} — ${meaning}`;
+lotList.appendChild(li);
+});
+
+document.getElementById('interpText').textContent =
+currentLang==='en'
+? 'Chart generated successfully. (Replace this paragraph with literature-based interpretation.)'
+: 'המפה נוצרה בהצלחה. (אפשר להחליף פסקה זו בפרשנות מבוססת ספרות.)';
+
+drawChartSvg({
+svgId: 'chartSvg',
+planets: state.planets,
+asc: state.asc,
+mc: state.mc,
+houseCusps: state.houseCusps
+});
+}
+
+async function computeChartFromForm() {
+setError(null);
+assertAstronomyLoaded();
+
+const month = parseInt(document.getElementById('month').value, 10);
+const day = parseInt(document.getElementById('day').value, 10);
+const year = parseInt(document.getElementById('year').value, 10);
+
+const hour12 = parseInt(document.getElementById('hour').value, 10);
+const minute = parseInt(document.getElementById('minute').value, 10);
+const ampm = document.getElementById('ampm').value;
+
+const latStr = document.getElementById('lat').value;
+const lonStr = document.getElementById('lon').value;
+const tzStr = document.getElementById('tz').value;
+
+if (!month || !day || !year || !hour12 || isNaN(minute)) {
+throw new Error(currentLang==='en' ? 'Please fill date and time.' : 'אנא מלא/י תאריך ושעה.');
+}
+if (!latStr || !lonStr) {
+throw new Error(currentLang==='en'
+? 'Please select a location suggestion from the dropdown.'
+: 'אנא בחר/י מיקום מהרשימה.');
+}
+
+const lat = parseFloat(latStr);
+const lon = parseFloat(lonStr);
+const tzHours = parseFloat(tzStr || '0');
+
+let hour24 = hour12 % 12;
+if (ampm === 'PM') hour24 += 12;
+
+// Convert local time -> UTC using tzHours
+const utcMs = Date.UTC(year, month-1, day, hour24, minute, 0) - tzHours*3600*1000;
+const time = Astronomy.MakeTime(new Date(utcMs));
+
+const eps = meanObliquityDeg(time);
+const lst = localSiderealTimeDeg(time, lon);
+const asc = ascendantDeg(lst, lat, eps);
+const mc = midheavenDeg(lst, eps);
+const houseCusps = equalHousesFromAsc(asc);
+
+const planets = [
+{ key:'Sun', lon: getPlanetLon(Astronomy.Body.Sun, time) },
+{ key:'Moon', lon: getPlanetLon(Astronomy.Body.Moon, time) },
+{ key:'Mercury', lon: getPlanetLon(Astronomy.Body.Mercury, time) },
+{ key:'Venus', lon: getPlanetLon(Astronomy.Body.Venus, time) },
+{ key:'Mars', lon: getPlanetLon(Astronomy.Body.Mars, time) },
+{ key:'Jupiter', lon: getPlanetLon(Astronomy.Body.Jupiter, time) },
+{ key:'Saturn', lon: getPlanetLon(Astronomy.Body.Saturn, time) },
+{ key:'Uranus', lon: getPlanetLon(Astronomy.Body.Uranus, time) },
+{ key:'Neptune', lon: getPlanetLon(Astronomy.Body.Neptune, time) },
+{ key:'Pluto', lon: getPlanetLon(Astronomy.Body.Pluto, time) },
+{ key:'Node', lon: getNodeLon(time) }
+];
+
+const aspects = computeAspects(planets);
+
+const byKey = Object.fromEntries(planets.map(p=>[p.key, p.lon]));
+const house2 = houseCusps[1];
+const house8 = houseCusps[7];
+const house9 = houseCusps[8];
+
+const lord2 = rulerLongitude(house2, byKey);
+const lord9 = rulerLongitude(house9, byKey);
+
+// day/night approximation using Sun house (MVP)
+const sunLon = byKey.Sun;
+const sunHouse = houseOfLongitude(sunLon, houseCusps);
+const isDay = (sunHouse >= 7 && sunHouse <= 12);
+
+const longsBase = {
+asc,
+sun: byKey.Sun,
+moon: byKey.Moon,
+merc: byKey.Mercury,
+ven: byKey.Venus,
+mars: byKey.Mars,
+jup: byKey.Jupiter,
+sat: byKey.Saturn,
+house2,
+house8,
+house9,
+lord2,
+lord9
+};
+
+const punya = isDay
+? norm360(longsBase.asc + longsBase.moon - longsBase.sun)
+: norm360(longsBase.asc + longsBase.sun - longsBase.moon);
+
+const longs = { ...longsBase, punya };
+
+const lots = lotsDefinitions.map(def=>{
+const raw = isDay ? def.day(longs) : def.night(longs);
+return { ...def, lon: norm360(raw) };
+});
+
+return { planets, aspects, lots, asc, mc, houseCusps };
+}
+
+document.getElementById('birthForm').addEventListener('submit', async (e) => {
 e.preventDefault();
-try{
-setStatus("");
-const positions = computeChartFromForm();
-setStatus(currentLang==="he" ? "המפה נוצרה בהצלחה" : "Chart created successfully", "ok");
-} catch(err){
+try {
+const state = await computeChartFromForm();
+lastChartState = state;
+renderAll(state);
+setError(null);
+} catch (err) {
 console.error(err);
-setStatus(err.message || String(err), "error");
+setError(err.message || String(err));
 }
 });
-
-/****************************************
-* Try init Google Places if Maps loaded
-****************************************/
-window.initPlaces = initPlaces;
 </script>
 
-<!-- Google Places loader (you already have your key here) -->
+<!-- Google Maps Places (Beta) -->
 <script
-src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCaCfPdQCwYnssAEUM8TeDsm1sWKqLJ-CQ&libraries=places&callback=initPlaces"
-async defer></script>
-
+src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCaCfPdQCwYnssAEUM8TeDsm1sWKqLJ-CQ&v=beta&libraries=places&loading=async&callback=initPlaces"
+async
+defer></script>
 </body>
 </html>
