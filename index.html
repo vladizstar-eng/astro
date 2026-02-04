@@ -375,15 +375,26 @@ return norm360(ecl.elon);
 
 // Node is optional; different builds expose different APIs.
 // We'll try a few possibilities and gracefully fallback.
-function getNodeLon(time) {
-try {
-if (typeof Astronomy.MoonNode === 'function') return norm360(Astronomy.MoonNode(time));
-if (typeof Astronomy.MoonNodes === 'function') {
-const nodes = Astronomy.MoonNodes(time);
-if (nodes && typeof nodes.ascending === 'number') return norm360(nodes.ascending);
+function jdFromAstroTime(t){
+// Astronomy Engine Time has .ut = days since J2000 (UT1-ish)
+// Convert to Julian Day: JD = 2451545.0 + ut
+if (t && typeof t.ut === 'number') return 2451545.0 + t.ut;
+// Fallback if t is a JS Date
+if (t instanceof Date) return (t.getTime()/86400000) + 2440587.5;
+throw new Error("Cannot compute JD from time object");
 }
-} catch (e) {}
-return 0;
+
+// Mean lunar ascending node longitude (Ω) in degrees (tropical), Meeus-style approximation.
+// Good for astrology accuracy (usually within ~0.1° to a few tenths depending on epoch).
+function meanLunarNodeDegFromJD(jd){
+const T = (jd - 2451545.0) / 36525.0;
+// Ω = 125°02'40.280" − 1934°08'10.539" T + 0.002078" T^2 + 0.000002" T^3
+// Convert arcsec terms to degrees.
+let omega = 125.0445550
+- 1934.1361849 * T
++ 0.0020762 * T*T
++ (T*T*T) / 467410.0;
+return norm360(omega);
 }
 
 /**
