@@ -193,8 +193,8 @@ We use your birth data only for calculating your chart (no storage or sharing). 
 <!-- libs -->
 <script src="https://d3js.org/d3.v7.min.js"></script>
 <script type="module">
-  import * as Astronomy from "https://cdn.jsdelivr.net/npm/astronomy-engine@2.1.19/+esm";
-  window.Astronomy = Astronomy;
+import * as Astronomy from "https://cdn.jsdelivr.net/npm/astronomy-engine@2.1.19/+esm";
+window.Astronomy = Astronomy;
 </script>
 
 <script>
@@ -362,8 +362,8 @@ setError(currentLang === 'en'
 function assertAstronomyLoaded() {
 if (!window.Astronomy) {
 throw new Error(currentLang === 'en'
-? 'Astronomy Engine did not load (Astronomy is undefined). Check that astronomy-browser.js is not blocked and the URL is reachable.'
-: 'ספריית Astronomy Engine לא נטענה (Astronomy לא מוגדר). בדוק/י שהקובץ astronomy-browser.js לא נחסם ושהקישור תקין.');
+? 'Astronomy Engine did not load (Astronomy is undefined).'
+: 'ספריית Astronomy Engine לא נטענה (Astronomy לא מוגדר).');
 }
 }
 
@@ -373,23 +373,20 @@ const ecl = Astronomy.Ecliptic(vec);
 return norm360(ecl.elon);
 }
 
-// Node is optional; different builds expose different APIs.
-// We'll try a few possibilities and gracefully fallback.
+/**
+* ✅ FIXED:
+* In astronomy-engine, time.ut and time.tt are ALREADY Julian Days (not days since J2000).
+*/
 function jdFromAstroTime(t){
-// Astronomy Engine Time has .ut = days since J2000 (UT1-ish)
-// Convert to Julian Day: JD = 2451545.0 + ut
-if (t && typeof t.ut === 'number') return 2451545.0 + t.ut;
-// Fallback if t is a JS Date
+if (t && typeof t.ut === 'number' && isFinite(t.ut)) return t.ut; // JD(UT)
+if (t && typeof t.tt === 'number' && isFinite(t.tt)) return t.tt; // JD(TT)
 if (t instanceof Date) return (t.getTime()/86400000) + 2440587.5;
 throw new Error("Cannot compute JD from time object");
 }
 
 // Mean lunar ascending node longitude (Ω) in degrees (tropical), Meeus-style approximation.
-// Good for astrology accuracy (usually within ~0.1° to a few tenths depending on epoch).
 function meanLunarNodeDegFromJD(jd){
 const T = (jd - 2451545.0) / 36525.0;
-// Ω = 125°02'40.280" − 1934°08'10.539" T + 0.002078" T^2 + 0.000002" T^3
-// Convert arcsec terms to degrees.
 let omega = 125.0445550
 - 1934.1361849 * T
 + 0.0020762 * T*T
@@ -398,26 +395,27 @@ return norm360(omega);
 }
 
 /**
-* ✅ FIX: DO NOT call Astronomy.JulianDay (it is not present in the browser build you’re using).
-* We read JD directly from the time object (time.tt / time.ut).
+* ✅ THIS IS WHAT YOUR CODE WAS MISSING:
+* getNodeLon(time) used later when building planet list.
+* Tries native API if present, otherwise uses mean-node approximation.
 */
+function getNodeLon(time){
+assertAstronomyLoaded();
+
+// Some builds might expose node helpers; most don't.
+// We'll just use mean node always unless a function exists.
+if (Astronomy && typeof Astronomy.MoonNode === 'function') {
+try {
+return norm360(Astronomy.MoonNode(time));
+} catch (_) {}
+}
+
+const jd = jdFromAstroTime(time);
+return meanLunarNodeDegFromJD(jd);
+}
+
 function meanObliquityDeg(time) {
-const jd =
-(time && typeof time.tt === 'number') ? time.tt :
-(time && typeof time.ut === 'number') ? time.ut :
-NaN;
-
-if (!isFinite(jd)) {
-// Last resort fallback (should rarely be needed)
-const d = time && time.date ? new Date(time.date) : null;
-if (!d || isNaN(d.getTime())) {
-throw new Error("Could not read Julian Day from Astronomy time object.");
-}
-const unixDays = d.getTime() / 86400000;
-const jdApprox = 2440587.5 + unixDays;
-return meanObliquityDeg({ ut: jdApprox, tt: jdApprox });
-}
-
+const jd = jdFromAstroTime(time); // JD
 const T = (jd - 2451545.0) / 36525.0;
 const epsArcsec = 84381.448 - 46.8150*T - 0.00059*T*T + 0.001813*T*T*T;
 return epsArcsec/3600.0;
